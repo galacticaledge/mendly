@@ -41,6 +41,7 @@ import styles from "./session.module.css";
 
 /** Frames to collect before deciding whether the setup is good enough. */
 const SETUP_FRAMES = 45;
+const SETUP_TIMEOUT_MS = 25_000;
 /** The safety watcher only needs a few samples a second. */
 const SAFETY_INTERVAL_MS = 200;
 
@@ -75,6 +76,8 @@ export function MotorExercise({
   const [stage, setStage] = useState<Stage>("setup");
   const [live, setLive] = useState<LiveTrackingState | null>(null);
   const [setupAdvice, setSetupAdvice] = useState<string | null>(null);
+  const [setupTimedOut, setSetupTimedOut] = useState(false);
+  const [setupAttempt, setSetupAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -93,6 +96,7 @@ export function MotorExercise({
   );
   const lastSafetyAtRef = useRef(0);
   const stageRef = useRef<Stage>("setup");
+  const setupTimedOutRef = useRef(false);
   const spokenRepRef = useRef(0);
   const finishedRef = useRef(false);
 
@@ -167,6 +171,7 @@ export function MotorExercise({
       }
 
       if (stageRef.current === "setup" || stageRef.current === "ready") {
+        if (stageRef.current === "setup" && setupTimedOutRef.current) return;
         const checker = checkerRef.current;
         checker.update(frame);
 
@@ -214,6 +219,15 @@ export function MotorExercise({
     enabled: true,
   });
 
+  useEffect(() => {
+    if (stage !== "setup" || status !== "running") return;
+    const timeout = setTimeout(() => {
+      setupTimedOutRef.current = true;
+      setSetupTimedOut(true);
+    }, SETUP_TIMEOUT_MS);
+    return () => clearTimeout(timeout);
+  }, [stage, status, setupAttempt]);
+
   // Keep the overlay's pixel grid matched to the video it sits on.
   useEffect(() => {
     const interval = setInterval(() => {
@@ -229,6 +243,17 @@ export function MotorExercise({
     setStage("running");
     say(exercise.instruction);
   }, [exercise.instruction, say]);
+
+  const retrySetup = useCallback(() => {
+    checkerRef.current = new EnvironmentChecker(
+      viewForPosture(exercise.posture),
+      requiredLandmarksFor(exercise, affectedSide),
+    );
+    setupTimedOutRef.current = false;
+    setSetupTimedOut(false);
+    setSetupAdvice(null);
+    setSetupAttempt((attempt) => attempt + 1);
+  }, [exercise, affectedSide]);
 
   // "I'm ready" starts the exercise without anyone reaching for the screen,
   // which is the point: the person is about to use the arm they would reach
@@ -292,14 +317,23 @@ export function MotorExercise({
         )}
       </div>
 
-      {stage === "setup" && status === "running" && (
+      {stage === "setup" && (status === "running" || setupTimedOut) && (
         <div className={styles.panel}>
-          <p className="body-lg">
-            {setupNeedsFullView
-              ? "Checking the camera can see all of you."
-              : "Checking the camera can see you."}
-          </p>
-          {setupAdvice && (
+          {setupTimedOut ? (
+            <>
+              <p className="body-lg" role="alert">
+                A reliable camera view could not be established for this exercise.
+              </p>
+              <Button onClick={retrySetup}>Try camera again</Button>
+            </>
+          ) : (
+            <p className="body-lg">
+              {setupNeedsFullView
+                ? "Checking the camera can see all of you."
+                : "Checking the camera can see you."}
+            </p>
+          )}
+          {setupAdvice && !setupTimedOut && (
             <p className={`${styles.advice} body-lg`}>
               <StatusTag tone="caution">Move</StatusTag> {setupAdvice}
             </p>
