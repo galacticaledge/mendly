@@ -74,13 +74,13 @@ export class EnvironmentChecker {
     const invisible = required.filter((name) => !isVisible(frame[name]));
 
     if (invisible.length > 0) {
-      console.log(
-        "Environment check invisible landmarks:",
-        invisible.map((name) => ({
-          name,
-          visibility: frame[name]?.visibility,
-        })),
-      );
+      // console.log(
+      //   "Environment check invisible landmarks:",
+      //   invisible.map((name) => ({
+      //     name,
+      //     visibility: frame[name]?.visibility,
+      //   })),
+      // );
     }
     const allInFrame = required.every((name) => {
       const landmark = frame[name];
