@@ -40,26 +40,39 @@ export default async function Dashboard() {
   const aphasia = data.uiProfile === "aphasia";
 
   /**
-   * An approved set that builds no plan at all.
+   * Which of the five things today's card is saying.
    *
-   * The plan is built by resolving each approved exercise against the catalog,
-   * and an id the catalog no longer knows is dropped. A set approved before an
-   * exercise was renamed therefore survives as an approved set with nothing in
-   * it — and the session, asked to run it, has nothing to run. There is no
-   * point offering that session, so the action is shown and greyed rather than
-   * leading somewhere that can only say the same thing back.
+   * Written out rather than nested into the card, because the states are close
+   * enough to be confused and two of them are the reason this exists:
+   *
+   *   nothing-to-run  An approved set whose exercises the catalog no longer
+   *                   knows. buildPlan drops an unrecognised id, so a set
+   *                   approved before an exercise was renamed survives with an
+   *                   empty plan and a session that has nothing to run.
+   *   done-today      Today's session is finished. A practitioner may have
+   *                   several sets approved and waiting, and finishing one used
+   *                   to promote the next the instant its status changed — so
+   *                   the screen offered a fresh set of exercises seconds after
+   *                   the person had done today's. The next one waits for
+   *                   tomorrow.
+   *   questions-left  Every exercise done but the session still open. Only
+   *                   reachable while it is open, because what counts as done
+   *                   is the results recorded against it, so the closing
+   *                   questions are still waiting and the action must stay live.
    */
-  const nothingToRun = today !== null && today.plan.length === 0;
+  const hasOpenSession = today?.sessionId != null;
+  const mode: "nothing-to-run" | "questions-left" | "resume" | "done-today" | "start" =
+    today === null || today.plan.length === 0
+      ? "nothing-to-run"
+      : hasOpenSession
+        ? remaining.length === 0
+          ? "questions-left"
+          : "resume"
+        : data.completedToday
+          ? "done-today"
+          : "start";
 
-  /**
-   * Every exercise done, but the session not closed.
-   *
-   * Only reachable while a session is open, because what counts as done is the
-   * results recorded against that session. So this is not "nothing left to do":
-   * the closing questions are still waiting, and the action has to stay live to
-   * reach them.
-   */
-  const onlyQuestionsLeft = today !== null && today.plan.length > 0 && remaining.length === 0;
+  const unavailable = mode === "nothing-to-run" || mode === "done-today";
 
   const count = (n: number) => `${n} ${n === 1 ? "exercise" : "exercises"}`;
 
@@ -74,38 +87,35 @@ export default async function Dashboard() {
         {/* 1. What should I do today */}
         {today ? (
           <SessionCard
-            eyebrow={
-              nothingToRun
-                ? "Today's session"
-                : today.sessionId
-                  ? "Carry on where you stopped"
-                  : "Today's session"
-            }
+            eyebrow={mode === "resume" || mode === "questions-left" ? "Carry on where you stopped" : "Today's session"}
             title={
-              nothingToRun
+              mode === "nothing-to-run"
                 ? aphasia
                   ? "Nothing today"
                   : "Nothing to do today"
-                : onlyQuestionsLeft
-                  ? `${count(today.plan.length)} done`
-                  : remaining.length === today.plan.length
-                    ? count(today.plan.length)
-                    : `${count(remaining.length)} left`
+                : mode === "done-today"
+                  ? aphasia
+                    ? "All done today"
+                    : "Today's session is done"
+                  : mode === "questions-left"
+                    ? `${count(today.plan.length)} done`
+                    : mode === "start"
+                      ? count(today.plan.length)
+                      : `${count(remaining.length)} left`
             }
             action={{
-              label: nothingToRun
-                ? "Start session"
-                : onlyQuestionsLeft
+              label:
+                mode === "questions-left"
                   ? "Finish your session"
-                  : today.sessionId
+                  : mode === "resume"
                     ? "Carry on"
                     : "Start session",
               icon: aphasia ? Play : ArrowRight,
               href: "/session",
-              disabled: nothingToRun,
+              disabled: unavailable,
             }}
             meta={
-              nothingToRun
+              unavailable
                 ? undefined
                 : aphasia
                   ? [`${today.minutes} minutes`, `${done.length} of ${today.plan.length} done`]
@@ -116,24 +126,22 @@ export default async function Dashboard() {
             }
           >
             <p className={`${styles.text} body-lg`}>
-              {nothingToRun
+              {mode === "nothing-to-run"
                 ? aphasia
                   ? "Your care team will add exercises."
                   : "Your care team has not approved anything you can do yet. It will appear here when they do."
-                : onlyQuestionsLeft
+                : mode === "done-today"
                   ? aphasia
-                    ? "A few questions left."
-                    : "That is all the exercises. A few short questions and you are finished."
-                  : aphasia
-                    ? "Stop any time."
-                    : "You can stop at any point."}
+                    ? "Come back tomorrow."
+                    : "You have done today's session. The next one will be here tomorrow."
+                  : mode === "questions-left"
+                    ? aphasia
+                      ? "A few questions left."
+                      : "That is all the exercises. A few short questions and you are finished."
+                    : aphasia
+                      ? "Stop any time."
+                      : "You can stop at any point."}
             </p>
-            {today.notes && (
-              <p className={`${styles.note} body-lg`}>
-                <span className="label">From your care team</span>
-                {today.notes}
-              </p>
-            )}
           </SessionCard>
         ) : (
           <SessionCard eyebrow="Today's session" title={aphasia ? "Nothing today" : "Nothing to do yet"}>

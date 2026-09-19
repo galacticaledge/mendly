@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
 import { getDeliverableSet, getOpenSession, getPatient, listResultsForSession, startSessionRow } from "@/lib/db/queries";
 import { buildPlan, SESSION_QUESTIONS } from "@/lib/session/plan";
+import { hasFinishedToday } from "@/lib/patient/dashboard";
 import { SessionRunner } from "./SessionRunner";
 
 export const metadata = { title: "Your session — Mendly" };
@@ -44,14 +45,22 @@ export default async function SessionPage() {
     redirect("/");
   }
 
-  const open = (await getOpenSession(user.id)) ?? (await startSessionRow(user.id, set.id));
-  if (!open) redirect("/");
+  // An open session is always resumable. Starting a *new* one is not, once
+  // today's is finished: a practitioner can have several sets approved and
+  // waiting, and without this, completing one promotes the next immediately
+  // and the person can work through a week of approved sets in an evening.
+  // The dashboard greys the action for this; this covers a typed URL.
+  const open = await getOpenSession(user.id);
+  if (!open && (await hasFinishedToday(user.id))) redirect("/");
 
-  const completed = (await listResultsForSession(open.id)).map((row) => row.exercise_id);
+  const session = open ?? (await startSessionRow(user.id, set.id));
+  if (!session) redirect("/");
+
+  const completed = (await listResultsForSession(session.id)).map((row) => row.exercise_id);
 
   return (
     <SessionRunner
-      sessionId={open.id}
+      sessionId={session.id}
       plan={plan}
       completedExerciseIds={completed}
       affectedSide={patient.affected_side}

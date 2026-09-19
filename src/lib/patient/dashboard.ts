@@ -35,6 +35,15 @@ export type PatientDashboard = {
     minutes: number;
     notes: string;
   } | null;
+  /**
+   * Whether a session has already been finished today.
+   *
+   * A practitioner can have several sets approved and waiting, and finishing
+   * one used to promote the next the instant its status changed — so a patient
+   * who had just finished could be offered a fresh set of exercises on the same
+   * screen, seconds later. One session is one day's work.
+   */
+  completedToday: boolean;
   week: { label: string; done: boolean; isToday: boolean }[];
   sessionsThisWeek: number;
   sessionsCompletedAllTime: number;
@@ -53,6 +62,18 @@ function resultLine(result: ExerciseResult): string {
     return `${result.valid_reps} of ${result.target_reps} done, average reach ${Math.round(result.rom_mean_deg)} degrees`;
   }
   return `${Math.round(result.accuracy * 100)} out of 100 correct`;
+}
+
+/**
+ * Whether this patient has already finished a session today.
+ *
+ * Bucketed in local time, like the week above and for the same reason: an
+ * evening session bucketed by the database in UTC lands on tomorrow.
+ */
+export async function hasFinishedToday(patientId: string): Promise<boolean> {
+  const finished = await listCompletedSessionsThisWeek(patientId);
+  const today = new Date().toDateString();
+  return finished.some((row) => new Date(row.started_at).toDateString() === today);
 }
 
 export async function loadDashboard(patientId: string): Promise<PatientDashboard | null> {
@@ -84,6 +105,7 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
   // database, which works in UTC and can move a session onto the wrong day.
   const doneDays = new Set(finished.map((row) => new Date(row.started_at).toDateString()));
   const now = new Date();
+  const completedToday = doneDays.has(now.toDateString());
   const week = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(now.getTime() - (6 - i) * DAY_MS);
     return {
@@ -98,6 +120,7 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
   return {
     firstName: patient.first_name,
     uiProfile: patient.ui_profile,
+    completedToday,
     dateLabel: label(now),
     today,
     week,
