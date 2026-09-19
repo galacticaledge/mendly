@@ -369,16 +369,16 @@ export async function countCompletedSessions(patientId: string): Promise<number>
 }
 
 /**
- * Sessions over the last seven days, one row per calendar day, so the patient
- * dashboard can answer "how is my week going" without pulling every session.
+ * When each session finished in the last seven days. The patient dashboard
+ * buckets these into days to answer "how is my week going"; nothing reads the
+ * sessions themselves, so this returns the timestamps alone.
  */
-export function weekSummary(patientId: string) {
-  return query<{ day: Date; completed: number }>(
-    `SELECT date_trunc('day', started_at) AS day,
-            count(*) FILTER (WHERE status = 'completed')::int AS completed
+export function listCompletedSessionsThisWeek(patientId: string) {
+  return query<{ started_at: Date }>(
+    `SELECT started_at
      FROM sessions
-     WHERE patient_id = $1 AND started_at > now() - interval '7 days'
-     GROUP BY 1 ORDER BY 1`,
+     WHERE patient_id = $1 AND status = 'completed'
+       AND started_at > now() - interval '7 days'`,
     [patientId],
   );
 }

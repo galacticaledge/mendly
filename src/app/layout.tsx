@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Public_Sans } from "next/font/google";
+import { Chewy, Poppins, Public_Sans } from "next/font/google";
 // bundle.css before tokens.css: both set font-family on single classes, and
 // tokens.json is the source of truth for type, so its classes (.label on a
 // button) must win the tie over .rs-btn.
@@ -27,6 +27,14 @@ const publicSans = Public_Sans({
   subsets: ["latin"],
   weight: ["400", "600"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Chewy is the brand face: the "Mendly." wordmark only, never headings or body.
+const chewy = Chewy({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-brand",
   display: "swap",
 });
 
@@ -58,7 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${publicSans.variable}`}>
+      <body className={`${poppins.variable} ${publicSans.variable} ${chewy.variable}`}>
         {patient ? <ProfileScope profile={patient.ui_profile}>{app}</ProfileScope> : app}
       </body>
     </html>

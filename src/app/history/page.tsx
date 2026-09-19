@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
 import { countCompletedSessions, listRecentResults } from "@/lib/db/queries";
 import { getExercise } from "@/lib/exercises/catalog";
-import { StatusTag } from "@/components/StatusTag/StatusTag";
+import type { ExerciseResult } from "@/lib/contracts";
 import styles from "../page.module.css";
+import history from "./history.module.css";
 
 export const metadata = { title: "History — Mendly" };
 
@@ -24,7 +25,7 @@ export default async function HistoryPage() {
   ]);
 
   return (
-    <main className={styles.main}>
+    <main className={`${styles.main} ${styles.wide}`}>
       <div className={styles.greeting}>
         <h1 className={`${styles.welcome} display`}>What you have done</h1>
         <p className={`${styles.muted} body-lg`}>
@@ -36,42 +37,82 @@ export default async function HistoryPage() {
         {results.length === 0 ? (
           <p className="body-lg">Nothing yet. Your first session will show up here.</p>
         ) : (
-          <ul className={styles.days}>
-            {results.map((row) => {
-              const exercise = getExercise(row.exercise_id);
-              const motor = row.payload.modality === "motor" ? row.payload : null;
-              const done = motor
-                ? motor.valid_reps >= motor.target_reps
-                : row.payload.modality === "cognitive" && row.payload.accuracy >= 0.7;
+          // Focusable so a keyboard can scroll it when it overflows on a narrow screen.
+          <div className={history.container} role="region" aria-label="Your exercises" tabIndex={0}>
+            <table className={history.table}>
+              <caption className={history.srOnly}>Your exercises, newest first.</caption>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    <span className={`${history.headBox} label`}>Exercise</span>
+                  </th>
+                  <th scope="col">
+                    <span className={`${history.headBox} label`}>Date</span>
+                  </th>
+                  <th scope="col">
+                    <span className={`${history.headBox} label`}>Progress tracker</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((row) => {
+                  const exercise = getExercise(row.exercise_id);
+                  const { line, share } = progress(row.payload);
+                  // Fewer than half done: the row is highlighted red.
+                  const low = share < 0.5;
 
-              return (
-                <li key={row.id} className={styles.day}>
-                  <span>
-                    <span className="body-lg">{exercise?.name ?? row.exercise_id}</span>
-                    <br />
-                    <span className={`${styles.muted} body-sm`}>
-                      {new Date(row.time).toLocaleDateString("en-GB", {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                      })}
-                      {" · "}
-                      {motor
-                        ? `${motor.valid_reps} of ${motor.target_reps} done`
-                        : row.payload.modality === "cognitive"
-                          ? `${Math.round(row.payload.accuracy * 100)} out of 100 correct`
-                          : ""}
-                    </span>
-                  </span>
-                  <StatusTag tone={done ? "positive" : "neutral"}>
-                    {done ? "Target met" : "Done"}
-                  </StatusTag>
-                </li>
-              );
-            })}
-          </ul>
+                  return (
+                    <tr key={row.id} className={low ? history.low : undefined}>
+                      <th scope="row" className="body-lg">
+                        {exercise?.name ?? row.exercise_id}
+                      </th>
+                      <td className="body-lg">
+                        {new Date(row.time).toLocaleDateString("en-GB", {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </td>
+                      <td>
+                        <span className={history.tracker}>
+                          <span className={history.track} aria-hidden="true">
+                            <span
+                              className={history.fill}
+                              style={{ width: `${Math.round(Math.min(share, 1) * 100)}%` }}
+                            />
+                          </span>
+                          <span className="body">
+                            {line}
+                            {low && <span className={history.srOnly}> (less than half)</span>}
+                          </span>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </main>
   );
+}
+
+/**
+ * How far an exercise got: a line in words, and the share of it done
+ * (repetitions against the target for movement, answers correct for a brain
+ * game).
+ */
+function progress(result: ExerciseResult): { line: string; share: number } {
+  if (result.modality === "motor") {
+    return {
+      line: `${result.valid_reps} of ${result.target_reps} done`,
+      share: result.target_reps > 0 ? result.valid_reps / result.target_reps : 1,
+    };
+  }
+  return {
+    line: `${Math.round(result.accuracy * 100)} out of 100 correct`,
+    share: result.accuracy,
+  };
 }

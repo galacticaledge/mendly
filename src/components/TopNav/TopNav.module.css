@@ -4,7 +4,18 @@
 /* The bar spans the viewport; one column inside it, the same on every route,
    so nothing in it moves when the page changes. 1080px matches the widest page
    column (Today, the practitioner pages); every page column shares it. */
-.bar:global(.rs-topnav) { padding: 0; }
+/* A floating bar in the spec's deep teal, with slightly rounded corners (a
+   smaller radius than the cards). Its width matches the page column, so its
+   inner column lines up with the page's content. */
+.bar:global(.rs-topnav) {
+  box-sizing: border-box;
+  padding: 0;
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 1080px;
+  margin: var(--space-3) auto 0;
+  background: var(--teal-deep);
+  border-radius: var(--radius-md);
+}
 
 .inner {
   flex: 1;
@@ -49,17 +60,45 @@
   text-decoration: none;
 }
 
-/* EXPERIMENT: the active tab is marked in coral-300 (label and a 3px underline),
-   and one underline slides between tabs. This breaks "one coral per screen";
-   revert it if it does not earn its place. */
+/* Items rest in a soft, muted tint of white. On hover an item turns bold and
+   full white, lifts slightly and gains a faint glow. The active item keeps
+   the pink underline. */
 
 .link.link {
   border-bottom-width: 3px;
-  transition: color 180ms ease, opacity 180ms ease;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 400;
+  opacity: 1;
+  transition: color 160ms ease, transform 160ms ease, text-shadow 160ms ease;
 }
+
+.link.link:hover {
+  color: var(--on-teal);
+  font-weight: 600;
+  transform: translateY(-1px) scale(1.05);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
+}
+
 .link.link[aria-current="page"] {
-  color: var(--coral-300);
-  border-bottom-color: var(--coral-300);
+  color: var(--on-teal);
+  font-weight: 600;
+  border-bottom-color: var(--pink-accent);
+}
+
+/* The label is stacked over an invisible bold copy of itself, so the link is
+   always as wide as its bold form and the row never shifts on hover. */
+.text {
+  display: inline-grid;
+}
+
+.text::after {
+  content: attr(data-text);
+  font-weight: 600;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* Once the sliding underline has measured, it draws the mark instead. */
@@ -75,7 +114,7 @@
   left: 0;
   width: 0;
   height: 3px;
-  background: var(--coral-300);
+  background: var(--pink-accent);
   pointer-events: none;
   visibility: hidden;
   transition:

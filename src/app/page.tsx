@@ -15,9 +15,10 @@ import styles from "./page.module.css";
  * Four questions, in order, and then it stops: what should I do today, how is
  * my week going, what have I already done, what is next.
  *
- * On a wide screen they sit side by side so all four fit without scrolling:
- * the session on the left as the focal point, the week and today's exercises
- * on the right. Below 900px they stack in the same order.
+ * The greeting sits on its own, outside every callout. Below it the session
+ * callout — the one raised panel here — spans the page; then the week, in a
+ * deep-teal callout, sits beside today's exercises. Below 900px everything
+ * stacks.
  *
  * The aphasia-friendly profile asks the same questions in fewer words: numbers
  * instead of clauses. The motor and visual-friendly profile changes size and
@@ -43,7 +44,7 @@ export default async function Dashboard() {
       <div className={styles.focus}>
         <div className={styles.greeting}>
           <h1 className={`${styles.welcome} display`}>Hello, {data.firstName}</h1>
-          <p className={`${styles.muted} body-lg`}>{data.dateLabel}</p>
+          <p className={`${styles.date} body-lg`}>{data.dateLabel}</p>
         </div>
 
         {/* 1. What should I do today */}
@@ -89,7 +90,11 @@ export default async function Dashboard() {
 
       <div className={styles.aside}>
         {/* 2. How is my week going */}
-        <section className={styles.section} aria-labelledby="week-heading">
+        <section
+          className={`${styles.section} ${styles.weekCallout}`}
+          aria-labelledby="week-heading"
+          data-ground="teal"
+        >
           <h2 id="week-heading" className={`${styles.heading} h2`}>
             Your week
           </h2>

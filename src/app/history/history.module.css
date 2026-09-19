@@ -1,0 +1,95 @@
+/* The history table: a rounded off-white container, each column header in
+   its own green box, and a row highlighted red when fewer than half of it
+   was done. */
+
+/* Scrolls sideways on a narrow screen rather than squeezing the columns. */
+.container {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--off-white);
+  box-shadow: var(--shadow-resting);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  text-align: left;
+  padding: var(--space-4) var(--space-3) var(--space-3);
+}
+
+.table thead th:first-child { padding-left: var(--space-5); }
+.table thead th:last-child { padding-right: var(--space-5); }
+
+.headBox {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--green-accent);
+  color: var(--on-teal);
+}
+
+.table tbody :is(th, td) {
+  text-align: left;
+  vertical-align: middle;
+  padding: var(--space-4) var(--space-3) var(--space-4) var(--space-5);
+  color: var(--ink-900);
+  border-top: 1px solid var(--border-divider);
+}
+
+.table tbody th { font-weight: 400; }
+.table tbody td:last-child { padding-right: var(--space-5); }
+
+/* Fewer than half done. */
+.low :is(th, td) {
+  background: var(--red-alert);
+}
+
+.table .low :is(th, td) {
+  color: var(--on-teal);
+  border-top-color: transparent;
+}
+
+.tracker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 8rem;
+}
+
+.track {
+  display: block;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--border-divider);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--teal-deep);
+}
+
+.low .track { background: rgba(255, 255, 255, 0.3); }
+.low .fill { background: var(--on-teal); }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Motor and visual-friendly: rows further apart. */
+:global([data-profile="motor_visual"]) .table tbody :is(th, td) {
+  padding-block: var(--space-5);
+}

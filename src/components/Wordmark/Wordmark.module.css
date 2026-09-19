@@ -1,10 +1,12 @@
-/* Height sets the size; width follows the mark's proportions. */
 .mark {
   display: block;
-  width: auto;
-  fill: currentColor;
+  font-family: var(--font-brand), "Poppins", sans-serif;
+  font-weight: 400;
+  color: currentColor;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.sm { height: var(--space-5); }
-.md { height: var(--space-6); }
-.lg { height: var(--space-8); }
+.sm { font-size: 1.75rem; line-height: 1; }
+.md { font-size: 2.25rem; line-height: 1; }
+.lg { font-size: 4rem; line-height: 1; }
