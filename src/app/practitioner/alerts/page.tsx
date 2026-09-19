@@ -12,7 +12,7 @@ export default async function AlertsPage() {
   return (
     <main className={styles.main}>
       <header className={styles.head}>
-        <h1 className="h1">Alerts</h1>
+        <h1 className="display">Alerts</h1>
         <p className={`${styles.muted} body-lg`}>
           Raised by the camera during a session, or by what a patient told us afterwards. A camera
           signal is a prompt to check on someone, not a diagnosis.

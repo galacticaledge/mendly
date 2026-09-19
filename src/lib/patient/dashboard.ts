@@ -1,5 +1,5 @@
 import "server-only";
-import type { ExerciseResult } from "@/lib/contracts";
+import type { ExerciseResult, UiProfile } from "@/lib/contracts";
 import {
   countCompletedSessions,
   getDeliverableSet,
@@ -24,6 +24,7 @@ import type { PlannedExercise } from "@/lib/session/plan";
 
 export type PatientDashboard = {
   firstName: string;
+  uiProfile: UiProfile;
   dateLabel: string;
   /** Null when the practitioner has not approved anything yet. */
   today: {
@@ -95,6 +96,7 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
 
   return {
     firstName: patient.first_name,
+    uiProfile: patient.ui_profile,
     dateLabel: label(now),
     today,
     week,

@@ -15,11 +15,11 @@ export const metadata = { title: "Your session — Mendly" };
  */
 export default async function SessionPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
   if (user.role !== "patient") redirect("/practitioner");
 
   const patient = await getPatient(user.id);
-  if (!patient) redirect("/login");
+  if (!patient) redirect("/sign-in");
 
   const set = await getDeliverableSet(user.id);
   // Only an approved set can be started, and this is the only page that starts
@@ -44,6 +44,7 @@ export default async function SessionPage() {
         prompt: q.prompt,
         choices: q.choices,
       }))}
+      uiProfile={patient.ui_profile}
     />
   );
 }

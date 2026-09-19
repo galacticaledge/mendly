@@ -20,7 +20,7 @@ export default async function ReviewQueuePage() {
   return (
     <main className={styles.main}>
       <header className={styles.head}>
-        <h1 className="h1">Waiting for review</h1>
+        <h1 className="display">Waiting for review</h1>
         <p className={`${styles.muted} body-lg`}>
           Drafted after each session. None of these have reached a patient.
         </p>

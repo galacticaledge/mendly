@@ -1,5 +1,5 @@
 .group { border: 0; padding: 0; margin: 0; }
-.legend { padding: 0 0 var(--space-4); color: var(--ink); }
+.legend { padding: 0 0 var(--space-4); color: var(--ink-900); }
 
 .list { display: flex; flex-direction: column; gap: var(--space-3); }
 .rowList { display: flex; flex-wrap: wrap; gap: var(--space-3); }
@@ -10,20 +10,20 @@
   gap: var(--space-4);
   min-height: 48px;
   padding: var(--space-3) var(--space-5);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
-  color: var(--ink);
+  color: var(--ink-900);
   cursor: pointer;
 }
 
-.option:hover { background: var(--brand-wash); }
+.option:hover { background: var(--teal-100); }
 
-.selected { border-color: var(--brand-deep); background: var(--brand-wash); }
+.selected { border-color: var(--teal-900); background: var(--teal-100); }
 
 /* The input drives state and focus; the visible mark is the .mark span. */
 .input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.option:has(.input:focus-visible) { box-shadow: var(--focus-ring); }
+.option:has(.input:focus-visible) { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
 .mark {
   display: grid;
@@ -31,10 +31,13 @@
   flex: none;
   width: 28px;
   height: 28px;
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-full);
-  background: var(--surface);
-  color: var(--inverse);
+  background: var(--canvas);
+  color: var(--on-teal);
 }
 
-.selected .mark { background: var(--brand); border-color: var(--brand-deep); }
+.selected .mark { background: var(--teal-700); border-color: var(--teal-900); }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .option { min-height: var(--space-8); }

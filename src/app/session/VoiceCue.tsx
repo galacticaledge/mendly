@@ -40,7 +40,7 @@ export function VoiceCue({ status, phrase }: VoiceCueProps) {
                 // the microphone, and it fails the same way as being offline.
                 "Speaking is not working in this browser. The button does the same thing."}
           </p>
-          <Button variant="ghost" onClick={startVoiceInput}>
+          <Button variant="text" onClick={startVoiceInput}>
             {status === "blocked" ? "Turn the microphone on" : "Try speaking again"}
           </Button>
         </div>

@@ -174,7 +174,7 @@ export function ProposalReview({
 
       <div className={styles.decisions}>
         <Button
-          variant="primary"
+          variant="featured"
           icon={Check}
           disabled={busy || kept.length === 0}
           onClick={() => decide("approve")}

@@ -1,0 +1,10 @@
+/* Height sets the size; width follows the mark's proportions. */
+.mark {
+  display: block;
+  width: auto;
+  fill: currentColor;
+}
+
+.sm { height: var(--space-5); }
+.md { height: var(--space-6); }
+.lg { height: var(--space-8); }

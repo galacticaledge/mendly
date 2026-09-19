@@ -1,0 +1,28 @@
+/* Page defaults and the few places the product departs from bundle.css.
+   tokens.css and bundle.css are copied verbatim from the Mendly design system
+   artifact; do not edit them. Anything the product needs on top goes here. */
+
+/* EXPERIMENT: not in the design system. Kept here, not in tokens.css, so a
+   re-copy of the artifact cannot silently drop it. Only for the active nav tab
+   on teal-900, where it reaches 4.88:1 (coral-500 manages 2.95:1). */
+:root { --coral-300: #ff8a85; }
+
+html { background: var(--canvas); }
+body { background: var(--canvas); color: var(--ink-900); font: var(--text-body); margin: 0;
+       -webkit-font-smoothing: antialiased; }
+
+/* The focus ring on every focusable element, not only those carrying
+   .rs-focusable: this app is driven by keyboard and switch access. */
+:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* focus-ring is ink-900, which all but vanishes on teal-900. On teal grounds the
+   ring is drawn in on-teal instead, keeping it well over 3:1. */
+.rs-topnav :focus-visible,
+[data-ground="teal"] :focus-visible { outline-color: var(--on-teal); }
+
+/* bundle.css draws the text button at 44px. Every target here is at least 48px. */
+.rs-btn-text { min-height: 48px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

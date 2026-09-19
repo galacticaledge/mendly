@@ -5,7 +5,6 @@
   padding: var(--space-1) var(--space-3);
   border: 1px solid;
   border-radius: var(--radius-sm);
-  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -13,29 +12,29 @@
   flex-shrink: 0;
 }
 
-/* One structure, four tones: -wash fill, -deep border and text. */
+/* Four tones. The word and the icon's shape carry the status; colour only
+   supports it. The system has two hue families, so caution and neutral are both
+   drawn in ink and told apart by their word, their icon and their edge. */
 .positive {
-  background: var(--brand-wash);
-  border-color: var(--brand-deep);
-  color: var(--brand-deep);
-}
-
-.caution {
-  background: var(--caution-wash);
-  border-color: var(--caution-deep);
-  color: var(--caution-deep);
+  background: var(--teal-100);
+  border-color: var(--teal-900);
+  color: var(--teal-900);
 }
 
 .alert {
-  background: var(--accent-wash);
-  border-color: var(--accent-deep);
-  color: var(--accent-deep);
+  background: var(--coral-100);
+  border-color: var(--coral-700);
+  color: var(--coral-700);
 }
 
-/* The linen family has no -wash/-deep names, so neutral uses the closest
-   equivalents: surface-sunken as the wash, ink-muted as the deep. */
+.caution {
+  background: transparent;
+  border-color: var(--ink-900);
+  color: var(--ink-900);
+}
+
 .neutral {
-  background: var(--surface-sunken);
-  border-color: var(--ink-muted);
-  color: var(--ink-muted);
+  background: transparent;
+  border-color: var(--border-control);
+  color: var(--ink-700);
 }

@@ -1,0 +1,2 @@
+/* Takes no part in layout: the page lays out as if the wrapper were not there. */
+.scope { display: contents; }

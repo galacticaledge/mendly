@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import type {
+  UiProfile,
   CognitiveExercise,
   CognitiveResult,
   ExerciseResult,
@@ -61,6 +62,8 @@ export type SessionRunnerProps = {
   firstName: string;
   practitionerNotes: string;
   questions: Question[];
+  /** The account's interface profile. Aphasia-friendly shortens the copy. */
+  uiProfile: UiProfile;
 };
 
 export function SessionRunner({
@@ -71,7 +74,9 @@ export function SessionRunner({
   firstName,
   practitionerNotes,
   questions,
+  uiProfile,
 }: SessionRunnerProps) {
+  const aphasia = uiProfile === "aphasia";
   const remaining = useMemo(
     () => plan.filter((item) => !completedExerciseIds.includes(item.exercise.id)),
     [plan, completedExerciseIds],
@@ -208,8 +213,8 @@ export function SessionRunner({
   if (remaining.length === 0 && stage !== "done") {
     return (
       <main className={styles.main}>
-        <h1 className="h1">You have already finished today&apos;s exercises</h1>
-        <Button variant="primary" onClick={() => finishSession(false)}>
+        <h1 className="display">You have already finished today&apos;s exercises</h1>
+        <Button variant="featured" onClick={() => finishSession(false)}>
           Finish and answer a few questions
         </Button>
       </main>
@@ -230,12 +235,15 @@ export function SessionRunner({
 
       {stage === "intro" && (
         <section className={styles.panelWide}>
-          <h1 className="h1">Ready when you are, {firstName}</h1>
+          <h1 className="display">Ready when you are, {firstName}</h1>
           <p className="body-lg">
-            {remaining.length === 1
-              ? "There is one exercise today."
-              : `There are ${remaining.length} exercises today.`}{" "}
-            You can stop at any point, and nothing is lost if you do.
+            {aphasia
+              ? `${remaining.length} ${remaining.length === 1 ? "exercise" : "exercises"}. Stop any time.`
+              : `${
+                  remaining.length === 1
+                    ? "There is one exercise today."
+                    : `There are ${remaining.length} exercises today.`
+                } You can stop at any point, and nothing is lost if you do.`}
           </p>
           {practitionerNotes && (
             <p className={`${styles.notes} body-lg`}>
@@ -244,7 +252,7 @@ export function SessionRunner({
             </p>
           )}
           <VoiceCue status={introVoice.status} phrase="I'm ready" />
-          <Button variant="primary" icon={ArrowRight} onClick={begin}>
+          <Button variant="featured" icon={ArrowRight} onClick={begin}>
             I&apos;m ready
           </Button>
         </section>
@@ -265,7 +273,7 @@ export function SessionRunner({
           <section className={styles.exercise}>
             <div className={styles.exerciseHead}>
               <p className="caption">{current.exercise.focus}</p>
-              <h1 className="h1">{current.exercise.name}</h1>
+              <h1 className="display">{current.exercise.name}</h1>
               <p className={`${styles.instruction} body-lg`}>{current.exercise.instruction}</p>
             </div>
             <CognitiveGame
@@ -282,7 +290,7 @@ export function SessionRunner({
       {stage === "between" && (
         <section className={styles.panelWide} aria-live="polite">
           <StatusTag tone="positive">Done</StatusTag>
-          <h1 className="h1">That one is finished</h1>
+          <h1 className="display">That one is finished</h1>
           {adaptation && (
             <p className="body-lg">
               {adaptation.reason}
@@ -295,7 +303,7 @@ export function SessionRunner({
             </p>
           )}
           <VoiceCue status={betweenVoice.status} phrase="next" />
-          <Button variant="primary" icon={ArrowRight} onClick={next}>
+          <Button variant="featured" icon={ArrowRight} onClick={next}>
             {index + 1 >= remaining.length ? "Finish up" : "Next exercise"}
           </Button>
         </section>
@@ -303,9 +311,9 @@ export function SessionRunner({
 
       {stage === "questions" && (
         <section className={styles.panelWide}>
-          <h1 className="h1">A few questions</h1>
+          <h1 className="display">A few questions</h1>
           <p className="body-lg">
-            These go to your care team. There are no wrong answers.
+            {aphasia ? "For your care team. No wrong answers." : "These go to your care team. There are no wrong answers."}
           </p>
           <div className={styles.questions}>
             {questions.map((question) => (
@@ -326,7 +334,7 @@ export function SessionRunner({
               {finishError}
             </p>
           )}
-          <Button variant="primary" onClick={() => finishSession(false)} disabled={saving}>
+          <Button variant="featured" onClick={() => finishSession(false)} disabled={saving}>
             {saving ? "Saving" : "Finish session"}
           </Button>
         </section>
@@ -335,9 +343,11 @@ export function SessionRunner({
       {stage === "done" && (
         <section className={styles.panelWide}>
           <StatusTag tone="positive">Session complete</StatusTag>
-          <h1 className="h1">That is today done</h1>
+          <h1 className="display">That is today done</h1>
           <p className="body-lg">
-            Your care team can see how it went. They will look at what comes next.
+            {aphasia
+              ? "Your care team will see it."
+              : "Your care team can see how it went. They will look at what comes next."}
           </p>
           <Link href="/" className={`${styles.homeLink} label`}>
             Back to today

@@ -21,15 +21,14 @@
   flex: none;
   min-height: 48px;
   padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--brand);
+  border: 2px solid var(--teal-700);
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--brand-deep);
-  font-family: var(--font-sans);
+  color: var(--teal-900);
   cursor: pointer;
 }
 
-.voiceToggle:hover { background: var(--brand-wash); }
+.voiceToggle:hover { background: var(--teal-100); }
 
 /* A full-width block for one step of the session. Not the session card: the
    card is the dashboard's one lifted element, and this is a whole screen. */
@@ -53,9 +52,9 @@
 .exercise { display: flex; flex-direction: column; gap: var(--space-6); }
 
 .exerciseHead { display: flex; flex-direction: column; gap: var(--space-2); }
-.exerciseHead p:first-child { color: var(--ink-muted); text-transform: uppercase; margin: 0; }
+.exerciseHead p:first-child { color: var(--ink-600); text-transform: uppercase; margin: 0; }
 .exerciseHead h1, .exerciseHead h2 { margin: 0; }
-.instruction { margin: 0; color: var(--ink); }
+.instruction { margin: 0; color: var(--ink-900); }
 
 /* ---- The camera ---- */
 
@@ -65,7 +64,7 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
+  background: var(--border-divider);
 }
 
 /* Mirrored so moving the right arm moves the arm on the right of the screen.
@@ -84,14 +83,14 @@
   gap: var(--space-3);
   padding: var(--space-6);
   text-align: center;
-  color: var(--ink);
-  background: var(--surface-sunken);
+  color: var(--ink-900);
+  background: var(--border-divider);
 }
 
 .cameraState p { margin: 0; }
 
 .liveRow { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.guidance { margin: 0; color: var(--ink); }
+.guidance { margin: 0; color: var(--ink-900); }
 .advice { display: flex; align-items: center; gap: var(--space-3); margin: 0; }
 
 .notes {
@@ -104,9 +103,9 @@
   border-radius: var(--radius-sm);
 }
 
-.notes span { color: var(--ink-muted); text-transform: uppercase; }
+.notes span { color: var(--ink-600); text-transform: uppercase; }
 
-.hint { color: var(--ink-muted); margin: 0; }
+.hint { color: var(--ink-600); margin: 0; }
 
 /* What the microphone is doing, sitting with the prompt that invites speaking.
    Quiet: it is a second route to the button beside it, not an instruction. */
@@ -114,7 +113,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  color: var(--ink-muted);
+  color: var(--ink-600);
 }
 
 .voiceCue p { margin: 0; }
@@ -132,8 +131,8 @@
 .error {
   margin: 0;
   padding: var(--space-4);
-  color: var(--accent-deep);
-  background: var(--accent-wash);
+  color: var(--coral-700);
+  background: var(--coral-100);
   border-radius: var(--radius-sm);
 }
 
@@ -142,14 +141,20 @@
   align-items: center;
   min-height: 48px;
   padding: var(--space-3) var(--space-5);
-  border: 2px solid var(--brand);
+  border: 2px solid var(--teal-700);
   border-radius: var(--radius-md);
-  color: var(--brand-deep);
+  color: var(--teal-900);
   text-decoration: none;
 }
 
-.homeLink:hover { background: var(--brand-wash); }
+.homeLink:hover { background: var(--teal-100); }
 
 @media (max-width: 600px) {
   .topline { flex-direction: column; align-items: stretch; }
 }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) :is(.voiceToggle, .homeLink) { min-height: var(--space-8); }
+
+/* Aphasia-friendly profile: more room between steps. See profiles.css. */
+:global([data-profile="aphasia"]) .main { gap: var(--space-8); }

@@ -30,7 +30,7 @@ export default async function CaseloadPage() {
   return (
     <main className={styles.main}>
       <header className={styles.head}>
-        <h1 className="h1">Your caseload</h1>
+        <h1 className="display">Your caseload</h1>
         <p className={`${styles.muted} body-lg`}>
           {patients.length} {patients.length === 1 ? "patient" : "patients"}.{" "}
           {awaiting.length > 0

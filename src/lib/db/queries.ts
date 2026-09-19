@@ -19,6 +19,7 @@ import type {
   ProposedExercise,
   SafetyAlert,
   SessionAnswer,
+  UiProfile,
 } from "@/lib/contracts";
 
 /* ---------------------------------------------------------------- */
@@ -46,6 +47,7 @@ export type PatientRow = {
   history: string;
   /** The patient's Backboard thread, or null before their first proposal. */
   backboard_thread_id: string | null;
+  ui_profile: UiProfile;
 };
 
 export function findPractitionerByEmail(email: string) {

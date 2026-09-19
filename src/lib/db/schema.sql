@@ -61,6 +61,15 @@ ALTER TABLE patients ADD COLUMN IF NOT EXISTS backboard_thread_id TEXT;
 
 CREATE INDEX IF NOT EXISTS patients_practitioner_idx ON patients (practitioner_id);
 
+-- Which version of the patient interface this person sees. Added after the
+-- table existed, so it is an ADD COLUMN IF NOT EXISTS: still safe to run on
+-- every start, and existing patients default to the standard interface.
+--   standard      the default recovery UI
+--   aphasia       fewer words, a picture beside every key label, larger type
+--   motor_visual  larger targets, larger type, stronger contrast
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS ui_profile TEXT NOT NULL DEFAULT 'standard'
+  CHECK (ui_profile IN ('standard', 'aphasia', 'motor_visual'));
+
 /* ---------------------------------------------------------------- */
 /* Practitioner rules                                                */
 /* ---------------------------------------------------------------- */

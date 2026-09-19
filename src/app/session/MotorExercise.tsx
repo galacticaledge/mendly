@@ -269,7 +269,7 @@ export function MotorExercise({
         <p className="caption">
           {exercise.posture === "standing" ? "Standing" : "Seated"}
         </p>
-        <h2 id="exercise-title" className="h1">
+        <h2 id="exercise-title" className="display">
           {exercise.name}
         </h2>
         <p className={`${styles.instruction} body-lg`}>
@@ -342,7 +342,7 @@ export function MotorExercise({
             </p>
           )}
           <VoiceCue status={voice.status} phrase="I'm ready" />
-          <Button variant="primary" onClick={begin}>
+          <Button variant="featured" onClick={begin}>
             I&apos;m ready
           </Button>
         </div>

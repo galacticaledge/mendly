@@ -5,7 +5,7 @@
   align-items: stretch;
 }
 
-.prompt { margin: 0; color: var(--ink); }
+.prompt { margin: 0; color: var(--ink-900); }
 
 /* ---- Card pairs ---- */
 
@@ -18,20 +18,19 @@
 .card {
   min-height: 96px;
   padding: var(--space-3);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  background: var(--border-divider);
+  color: var(--ink-900);
   cursor: pointer;
   transition: background 150ms ease;
 }
 
-.card:hover:not(:disabled) { background: var(--brand-wash); }
+.card:hover:not(:disabled) { background: var(--teal-100); }
 .cardUp { background: var(--surface-raised); }
 /* A found pair is marked by the word staying visible and the fill changing;
    the word is what carries the state. */
-.cardMatched { background: var(--brand-wash); border-color: var(--brand-deep); cursor: default; }
+.cardMatched { background: var(--teal-100); border-color: var(--teal-900); cursor: default; }
 
 /* ---- Odd one out ---- */
 
@@ -47,14 +46,14 @@
   place-items: center;
   width: 96px;
   height: 96px;
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
-  color: var(--ink);
+  color: var(--ink-900);
   cursor: pointer;
 }
 
-.symbol:hover { background: var(--brand-wash); }
+.symbol:hover { background: var(--teal-100); }
 
 /* ---- Word list ---- */
 
@@ -70,30 +69,32 @@
   border-radius: var(--radius-md);
 }
 
-.word { color: var(--ink); }
+.word { color: var(--ink-900); }
 
 .wordChoices { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 
 .wordChoice {
   min-height: 48px;
   padding: var(--space-3) var(--space-5);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  color: var(--ink-900);
   cursor: pointer;
 }
 
-.wordChoice:hover { background: var(--brand-wash); }
-.wordChosen { background: var(--brand); border-color: var(--brand-deep); color: var(--inverse); }
+.wordChoice:hover { background: var(--teal-100); }
+.wordChosen { background: var(--teal-700); border-color: var(--teal-900); color: var(--on-teal); }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .wordChoice { min-height: var(--space-8); }
 
 /* ---- Number work ---- */
 
 .sum {
   margin: 0;
   text-align: center;
-  color: var(--ink);
+  color: var(--ink-900);
 }
 
 .answer {
@@ -102,12 +103,14 @@
   min-width: 96px;
   min-height: 72px;
   padding: var(--space-3) var(--space-5);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
-  color: var(--ink);
+  color: var(--ink-900);
   font-family: var(--font-sans);
   cursor: pointer;
 }
 
-.answer:hover { background: var(--brand-wash); }
+.answer:hover { background: var(--teal-100); }
+
+:global([data-profile="motor_visual"]) .answer { min-height: var(--space-8); }
