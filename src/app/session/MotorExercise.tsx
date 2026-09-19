@@ -33,6 +33,7 @@ import { Button } from "@/components/Button/Button";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { useVoiceCommand } from "@/lib/voice/useVoice";
+import { VoiceCue } from "./VoiceCue";
 import styles from "./session.module.css";
 
 /** Frames to collect before deciding whether the setup is good enough. */
@@ -49,7 +50,6 @@ export type MotorExerciseProps = {
   sessionId: string;
   /** Speaks a line, if the patient has voice prompts on. */
   say: (text: string) => void;
-  voiceEnabled: boolean;
   onFinish: (result: MotorResult) => void;
 };
 
@@ -59,7 +59,6 @@ export function MotorExercise({
   affectedSide,
   sessionId,
   say,
-  voiceEnabled,
   onFinish,
 }: MotorExerciseProps) {
   const rung = getLevel(exercise, level) as { reps: number; targetRomDeg: number; holdSeconds: number };
@@ -206,8 +205,11 @@ export function MotorExercise({
   // "I'm ready" starts the exercise without anyone reaching for the screen,
   // which is the point: the person is about to use the arm they would reach
   // with. The button beside it does the same thing.
-  useVoiceCommand(["i'm ready", "im ready", "i am ready", "ready"], begin, {
-    enabled: voiceEnabled && stage === "ready",
+  //
+  // "ready" on its own is not in the list. It matched "I'm not ready", and it
+  // matched the prompt asking the question.
+  const voice = useVoiceCommand(["im ready", "i am ready", "lets go", "begin"], begin, {
+    enabled: stage === "ready",
   });
 
   useEffect(() => {
@@ -297,6 +299,7 @@ export function MotorExercise({
               the exercise is finding the position by feel.
             </p>
           )}
+          <VoiceCue status={voice.status} phrase="I'm ready" />
           <Button variant="primary" onClick={begin}>
             I&apos;m ready
           </Button>
