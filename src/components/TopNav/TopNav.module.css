@@ -1,17 +1,17 @@
-/* Flat brand bar. The accent stays out of navigation. */
-.bar {
-  background: var(--brand);
-  color: var(--inverse);
-}
+/* bundle.css's .rs-topnav draws the bar. This file lines it up with the page
+   column and keeps every target at 48px. */
+
+/* The column below sets the side padding, so the bar gives up its own. */
+.bar:global(.rs-topnav) { padding: 0; }
 
 .inner {
+  flex: 1;
   max-width: 720px;
   margin: 0 auto;
   padding: var(--space-2) var(--space-5);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2) var(--space-5);
 }
 
@@ -20,49 +20,22 @@
 .list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.wordmark,
-.link {
+.target {
   display: inline-flex;
   align-items: center;
   min-height: 48px;
-  border-radius: var(--radius-sm);
-  color: var(--inverse);
   text-decoration: none;
 }
 
-.wordmark {
-  padding: 0 var(--space-2);
-  margin-left: calc(-1 * var(--space-2));
-}
-
-.link {
-  padding: 0 var(--space-3);
-  transition: background-color 150ms ease;
-}
-
-.wordmark:hover,
-.link:hover {
-  background: var(--brand-deep);
-}
-
-.wordmark:focus-visible,
-.link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.active {
-  text-decoration: underline;
-  text-decoration-color: var(--inverse);
-  text-decoration-thickness: 2px;
-  text-underline-offset: var(--space-2);
-}
+/* The current page is underlined in on-teal, not the system's coral-500: the
+   featured action is the only coral on any screen. */
+.link.link[aria-current="page"] { border-bottom-color: var(--on-teal); }
 
 /* Sits outside the nav list: signing out is not a place in the product, and
    it must not count against the five-item limit. */
@@ -76,9 +49,8 @@
   border: 2px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--inverse);
-  font-family: var(--font-sans);
+  color: var(--on-teal);
   cursor: pointer;
 }
 
-.signOut:hover { border-color: var(--inverse); }
+.signOut:hover { border-color: var(--on-teal); }

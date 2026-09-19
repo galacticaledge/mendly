@@ -65,7 +65,7 @@ export function LoginForm() {
         </p>
       )}
 
-      <Button variant="primary" type="submit" disabled={busy}>
+      <Button variant="featured" type="submit" disabled={busy}>
         {busy ? "Signing in" : "Sign in"}
       </Button>
     </form>

@@ -204,7 +204,7 @@ export function SessionRunner({
     return (
       <main className={styles.main}>
         <h1 className="h1">You have already finished today&apos;s exercises</h1>
-        <Button variant="primary" onClick={() => finishSession(false)}>
+        <Button variant="featured" onClick={() => finishSession(false)}>
           Finish and answer a few questions
         </Button>
       </main>
@@ -243,7 +243,7 @@ export function SessionRunner({
               You can say &ldquo;I&apos;m ready&rdquo; instead of pressing the button.
             </p>
           )}
-          <Button variant="primary" icon={ArrowRight} onClick={begin}>
+          <Button variant="featured" icon={ArrowRight} onClick={begin}>
             I&apos;m ready
           </Button>
         </section>
@@ -294,7 +294,7 @@ export function SessionRunner({
               )}
             </p>
           )}
-          <Button variant="primary" icon={ArrowRight} onClick={next}>
+          <Button variant="featured" icon={ArrowRight} onClick={next}>
             {index + 1 >= remaining.length ? "Finish up" : "Next exercise"}
           </Button>
         </section>
@@ -325,7 +325,7 @@ export function SessionRunner({
               {finishError}
             </p>
           )}
-          <Button variant="primary" onClick={() => finishSession(false)} disabled={saving}>
+          <Button variant="featured" onClick={() => finishSession(false)} disabled={saving}>
             {saving ? "Saving" : "Finish session"}
           </Button>
         </section>

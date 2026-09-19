@@ -4,7 +4,7 @@ import { getCurrentRules, getDeliverableSet, getPatient } from "@/lib/db/queries
 import { getExercise, getLevel, TAG_LABELS } from "@/lib/exercises/catalog";
 import { isMotor } from "@/lib/contracts";
 import { DEFAULT_RULES } from "@/lib/ai/propose";
-import { ExerciseRow } from "@/components/ExerciseRow/ExerciseRow";
+import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
 import { TopNav } from "@/components/TopNav/TopNav";
 import { PATIENT_NAV } from "@/lib/nav";
 import styles from "../page.module.css";
@@ -62,7 +62,7 @@ export default async function PlanPage() {
           </h2>
           {set?.approved_exercises ? (
             <ol className={styles.list}>
-              {set.approved_exercises.map((item, index) => {
+              {set.approved_exercises.map((item) => {
                 const exercise = getExercise(item.exerciseId);
                 if (!exercise) return null;
                 const rung = getLevel(exercise, item.level);
@@ -70,12 +70,11 @@ export default async function PlanPage() {
                   ? `${(rung as { reps: number }).reps} times`
                   : `${(rung as { rounds: number }).rounds} round(s)`;
                 return (
-                  <ExerciseRow
+                  <ActivityRow
                     key={item.exerciseId}
-                    number={index + 1}
-                    name={exercise.name}
-                    detail={detail}
-                    status="pending"
+                    title={exercise.name}
+                    status={`${detail} · To do`}
+                    done={false}
                   />
                 );
               })}

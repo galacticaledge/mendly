@@ -9,15 +9,15 @@
 
 .head { display: flex; flex-direction: column; gap: var(--space-2); }
 .head h1 { margin: 0; }
-.muted { color: var(--ink-muted); margin: 0; }
-.history { color: var(--ink); margin: var(--space-2) 0 0; max-width: 720px; }
+.muted { color: var(--ink-600); margin: 0; }
+.history { color: var(--ink-900); margin: var(--space-2) 0 0; max-width: 720px; }
 
 .back {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
   min-height: 48px;
-  color: var(--brand-deep);
+  color: var(--teal-900);
   text-decoration: none;
 }
 
@@ -37,22 +37,22 @@
   padding: var(--space-6);
   background: var(--surface-raised);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-resting);
 }
 
 .reviewHead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
 .reviewHead h2 { margin: 0; }
-.summary { margin: 0; color: var(--ink); max-width: 720px; }
+.summary { margin: 0; color: var(--ink-900); max-width: 720px; }
 
 .violations {
   padding: var(--space-4) var(--space-5);
-  background: var(--caution-wash);
-  border: 2px solid var(--caution-deep);
+  background: transparent;
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-sm);
-  color: var(--ink);
+  color: var(--ink-900);
 }
 
-.violations p { margin: 0 0 var(--space-2); color: var(--caution-deep); }
+.violations p { margin: 0 0 var(--space-2); color: var(--ink-900); }
 .violations ul { margin: 0; padding-left: var(--space-5); display: flex; flex-direction: column; gap: var(--space-1); }
 
 .proposalList { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
@@ -64,7 +64,7 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding: var(--space-5);
-  background: var(--surface);
+  background: var(--canvas);
   border-radius: var(--radius-md);
 }
 
@@ -75,7 +75,7 @@
 .proposalMain { display: flex; flex-direction: column; gap: var(--space-1); min-width: 16rem; flex: 1; }
 .proposalMain p { margin: 0; }
 .rationale { display: flex; flex-direction: column; gap: var(--space-1); margin-top: var(--space-2) !important; }
-.rationale span { color: var(--ink-muted); text-transform: uppercase; }
+.rationale span { color: var(--ink-600); text-transform: uppercase; }
 
 .proposalControls { display: flex; align-items: flex-end; gap: var(--space-3); flex-wrap: wrap; }
 
@@ -106,35 +106,34 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
-  background: var(--surface);
+  background: var(--canvas);
   border: 2px solid transparent;
   border-radius: var(--radius-md);
 }
 
-.inPool { border-color: var(--brand-deep); background: var(--brand-wash); }
+.inPool { border-color: var(--teal-900); background: var(--teal-100); }
 
 .poolLabel { display: flex; align-items: flex-start; gap: var(--space-4); cursor: pointer; flex: 1; min-width: 16rem; }
 .poolText { display: flex; flex-direction: column; gap: var(--space-1); }
 
-.checkbox { width: 28px; height: 28px; accent-color: var(--brand); flex: none; margin-top: var(--space-1); }
+.checkbox { width: 28px; height: 28px; accent-color: var(--teal-700); flex: none; margin-top: var(--space-1); }
 
 .tagRow { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 
 .tag {
   min-height: 48px;
   padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--ink);
-  font-family: var(--font-sans);
+  background: var(--canvas);
+  color: var(--ink-900);
   cursor: pointer;
 }
 
-.tag:hover { background: var(--brand-wash); }
-/* "Must not be asked for" is a restriction, so it reads as caution rather than
-   as a selected, positive state. */
-.tagOn { background: var(--caution-wash); border-color: var(--caution-deep); color: var(--caution-deep); }
+.tag:hover { background: var(--teal-100); }
+/* "Must not be asked for" is drawn as the selected state. aria-pressed carries
+   it for assistive tech. */
+.tagOn { background: var(--teal-100); border-color: var(--teal-900); color: var(--teal-900); }
 
 .limitRow { display: flex; flex-wrap: wrap; gap: var(--space-5); }
 
@@ -146,7 +145,7 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  background: var(--surface);
+  background: var(--canvas);
   border-radius: var(--radius-sm);
 }
 
@@ -155,8 +154,7 @@
   padding: 0 var(--space-3);
   border: 0;
   background: transparent;
-  color: var(--brand-deep);
-  font-family: var(--font-sans);
+  color: var(--teal-900);
   cursor: pointer;
 }
 
@@ -169,11 +167,10 @@
   flex: 1;
   min-width: 16rem;
   padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  color: var(--ink);
-  border: 2px solid var(--line-strong);
+  background: var(--canvas);
+  color: var(--ink-900);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-sm);
-  font-family: var(--font-sans);
 }
 
 .notesField { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -186,12 +183,12 @@
 .table th {
   text-align: left;
   padding: var(--space-3) var(--space-4);
-  color: var(--ink-muted);
+  color: var(--ink-600);
   text-transform: uppercase;
-  border-bottom: 2px solid var(--line-strong);
+  border-bottom: 2px solid var(--border-control);
 }
 
-.table td { padding: var(--space-4); border-bottom: 1px solid var(--line); color: var(--ink); }
+.table td { padding: var(--space-4); border-bottom: 1px solid var(--border-divider); color: var(--ink-900); }
 
 .alertList { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; padding: 0; }
 
@@ -211,7 +208,7 @@
 .error {
   margin: 0;
   padding: var(--space-3) var(--space-4);
-  color: var(--accent-deep);
-  background: var(--accent-wash);
+  color: var(--coral-700);
+  background: var(--coral-100);
   border-radius: var(--radius-sm);
 }

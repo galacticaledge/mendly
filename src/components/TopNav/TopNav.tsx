@@ -25,9 +25,9 @@ export function TopNav({ items, activeHref, wide = false }: TopNavProps) {
   }
 
   return (
-    <header className={styles.bar}>
+    <header className={`rs-topnav ${styles.bar}`}>
       <div className={`${styles.inner} ${wide ? styles.wide : ""}`}>
-        <Link href="/" className={`${styles.wordmark} h3`}>
+        <Link href="/" className={`rs-topnav-mark ${styles.target} label`}>
           Mendly
         </Link>
         <nav aria-label="Main">
@@ -38,7 +38,7 @@ export function TopNav({ items, activeHref, wide = false }: TopNavProps) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`${styles.link} ${active ? styles.active : ""} label`}
+                    className={`rs-topnav-link ${styles.target} ${styles.link} label`}
                     aria-current={active ? "page" : undefined}
                   >
                     {item.label}

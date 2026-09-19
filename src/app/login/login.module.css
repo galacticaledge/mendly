@@ -14,12 +14,12 @@
   padding: var(--space-6);
   background: var(--surface-raised);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-resting);
 }
 
-.wordmark { color: var(--brand); margin: 0; }
-.title { color: var(--ink); margin: 0; }
-.intro { color: var(--ink-muted); margin: 0 0 var(--space-3); }
+.wordmark { color: var(--teal-700); margin: 0; }
+.title { color: var(--ink-900); margin: 0; }
+.intro { color: var(--ink-600); margin: 0 0 var(--space-3); }
 
 .form { display: flex; flex-direction: column; gap: var(--space-5); }
 
@@ -29,7 +29,7 @@
   gap: var(--space-3);
   margin: 0;
   padding: var(--space-4);
-  color: var(--accent-deep);
-  background: var(--accent-wash);
+  color: var(--coral-700);
+  background: var(--coral-100);
   border-radius: var(--radius-sm);
 }

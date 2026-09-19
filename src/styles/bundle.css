@@ -1,0 +1,196 @@
+/* Mendly — component styles. Built entirely on tokens.css custom properties. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.rs-focusable:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Button ------------------------------------------------------------ */
+
+.rs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.rs-btn-primary {
+  background: var(--teal-700);
+  color: var(--on-teal);
+}
+.rs-btn-primary:hover { background: var(--teal-600); }
+
+.rs-btn-featured {
+  background: var(--coral-600);
+  color: var(--on-teal);
+}
+.rs-btn-featured:hover { filter: brightness(1.06); }
+
+.rs-btn-secondary {
+  background: transparent;
+  color: var(--ink-900);
+  border: 1.5px solid var(--border-control);
+}
+.rs-btn-secondary:hover { background: var(--surface-raised); }
+
+.rs-btn-text {
+  background: transparent;
+  color: var(--teal-900);
+  padding: 0 var(--space-2);
+  min-height: 44px;
+}
+.rs-btn-text:hover { text-decoration: underline; }
+
+.rs-btn[disabled] {
+  background: var(--surface-raised);
+  color: var(--ink-400);
+  border-color: var(--border-divider);
+  cursor: not-allowed;
+}
+
+/* Top navigation ------------------------------------------------------ */
+
+.rs-topnav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-7);
+  background: var(--teal-900);
+  color: var(--on-teal);
+  padding: var(--space-4) var(--space-6);
+  box-shadow: var(--shadow-resting);
+}
+
+.rs-topnav-mark {
+  color: var(--on-teal);
+  margin-right: auto;
+}
+
+.rs-topnav-link {
+  color: var(--on-teal);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-1);
+  border-bottom: 2px solid transparent;
+  opacity: 0.85;
+}
+.rs-topnav-link:hover { opacity: 1; }
+.rs-topnav-link[aria-current="page"] {
+  opacity: 1;
+  border-bottom-color: var(--coral-500);
+}
+
+.rs-topnav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--teal-700);
+  color: var(--on-teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Progress bar --------------------------------------------------------- */
+
+.rs-progress {
+  display: block;
+}
+
+.rs-progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.rs-progress-track {
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: var(--border-divider);
+  overflow: hidden;
+}
+
+.rs-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--teal-700);
+}
+
+/* Session card ---------------------------------------------------------- */
+
+.rs-session-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-resting);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 560px;
+}
+
+.rs-session-meta {
+  display: flex;
+  gap: var(--space-4);
+  color: var(--ink-600);
+}
+
+/* Activity row ------------------------------------------------------------ */
+
+.rs-activity-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.rs-activity-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border-divider);
+}
+.rs-activity-row:last-child { border-bottom: none; }
+
+.rs-activity-status {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rs-activity-status.is-done {
+  background: var(--teal-700);
+  color: var(--on-teal);
+}
+.rs-activity-status.is-pending {
+  background: transparent;
+  border: 1.5px solid var(--border-control);
+}
+
+.rs-activity-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+
+/* Alert ------------------------------------------------------------------- */
+
+.rs-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+}
+
+.rs-alert-positive { background: var(--teal-100); color: var(--teal-900); }
+.rs-alert-attention { background: var(--coral-100); color: var(--coral-700); }
+
+.rs-alert-icon { flex: none; margin-top: 2px; }

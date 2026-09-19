@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
-import { ExerciseRow } from "@/components/ExerciseRow/ExerciseRow";
+import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { SessionCard } from "@/components/SessionCard/SessionCard";
-import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { TopNav } from "@/components/TopNav/TopNav";
 import { getSessionUser } from "@/lib/auth/session";
 import { loadDashboard } from "@/lib/patient/dashboard";
@@ -53,22 +52,15 @@ export default async function Dashboard() {
               icon: ArrowRight,
               href: "/session",
             }}
+            meta={[`About ${today.minutes} minutes`, `${done.length} of ${today.plan.length} exercises done`]}
           >
-            <p className={`${styles.text} body-lg`}>
-              This takes about {today.minutes} minutes. You can stop at any point.
-            </p>
+            <p className={`${styles.text} body-lg`}>You can stop at any point.</p>
             {today.notes && (
               <p className={`${styles.note} body-lg`}>
-                <span className="caption">From your care team</span>
+                <span className="label">From your care team</span>
                 {today.notes}
               </p>
             )}
-            <ProgressBar
-              label="Today"
-              value={done.length}
-              max={today.plan.length}
-              valueText={`${done.length} of ${today.plan.length} exercises done`}
-            />
           </SessionCard>
         ) : (
           <SessionCard
@@ -93,16 +85,6 @@ export default async function Dashboard() {
             max={7}
             valueText={`${data.sessionsThisWeek} ${data.sessionsThisWeek === 1 ? "session" : "sessions"} this week`}
           />
-          <ul className={styles.days}>
-            {data.week.map((day) => (
-              <li key={day.label + String(day.isToday)} className={styles.day}>
-                <span className="body-lg">{day.isToday ? `${day.label} (today)` : day.label}</span>
-                <StatusTag tone={day.done ? "positive" : "neutral"}>
-                  {day.done ? "Done" : day.isToday ? "Today" : "No session"}
-                </StatusTag>
-              </li>
-            ))}
-          </ul>
         </section>
 
         {/* 3. What have I already done */}
@@ -111,14 +93,13 @@ export default async function Dashboard() {
             <h2 id="done-heading" className={`${styles.heading} h2`}>
               Done today
             </h2>
-            <ol className={styles.list}>
-              {done.map((item, index) => (
-                <ExerciseRow
+            <ol className={`rs-activity-list ${styles.list}`}>
+              {done.map((item) => (
+                <ActivityRow
                   key={item.exercise.id}
-                  number={index + 1}
-                  name={item.exercise.name}
-                  detail={describe(item.exercise.id, item.level)}
-                  status="complete"
+                  title={item.exercise.name}
+                  status={`${describe(item.exercise.id, item.level)} · Done`}
+                  done
                 />
               ))}
             </ol>
@@ -131,14 +112,13 @@ export default async function Dashboard() {
             <h2 id="next-heading" className={`${styles.heading} h2`}>
               Up next
             </h2>
-            <ol className={styles.list} start={done.length + 1}>
-              {remaining.map((item, index) => (
-                <ExerciseRow
+            <ol className={`rs-activity-list ${styles.list}`} start={done.length + 1}>
+              {remaining.map((item) => (
+                <ActivityRow
                   key={item.exercise.id}
-                  number={done.length + index + 1}
-                  name={item.exercise.name}
-                  detail={describe(item.exercise.id, item.level)}
-                  status="pending"
+                  title={item.exercise.name}
+                  status={`${describe(item.exercise.id, item.level)} · To do`}
+                  done={false}
                 />
               ))}
             </ol>

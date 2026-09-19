@@ -23,7 +23,7 @@ export function StatusTag({ tone, children }: StatusTagProps) {
   const Icon = icons[tone];
 
   return (
-    <span className={`${styles.tag} ${styles[tone]} body-sm`}>
+    <span className={`${styles.tag} ${styles[tone]} label-sm`}>
       <Icon size={14} strokeWidth={2.5} aria-hidden="true" className={styles.icon} />
       {children}
     </span>

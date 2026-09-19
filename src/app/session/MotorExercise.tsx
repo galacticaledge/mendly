@@ -275,7 +275,7 @@ export function MotorExercise({
             You will do this {rung.reps} times
             {rung.holdSeconds > 0 ? `, holding each one for ${rung.holdSeconds} seconds` : ""}.
           </p>
-          <Button variant="primary" onClick={begin}>
+          <Button variant="featured" onClick={begin}>
             I&apos;m ready
           </Button>
         </div>

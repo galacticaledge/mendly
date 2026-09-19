@@ -1,7 +1,7 @@
 .main {
   max-width: 720px;
   margin: 0 auto;
-  padding: var(--space-7) var(--space-5) var(--space-9);
+  padding: var(--space-8) var(--space-5) var(--space-9);
   display: flex;
   flex-direction: column;
   gap: var(--space-7);
@@ -21,11 +21,11 @@
 }
 
 .welcome {
-  color: var(--brand);
+  color: var(--teal-700);
 }
 
 .muted {
-  color: var(--ink-muted);
+  color: var(--ink-600);
 }
 
 .section {
@@ -54,20 +54,16 @@
   gap: var(--space-4);
 }
 
-/* A note the practitioner attached to today's set. Sits in the session card,
-   so it uses the page ground to separate itself from the card's surface. */
+/* A note from the care team. A label over the text, no box: whitespace
+   separates it, and it never becomes a panel inside the session card. */
 .note {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   margin: 0;
-  padding: var(--space-4);
-  background: var(--surface);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
+  color: var(--ink-900);
 }
 
 .note span {
-  color: var(--ink-muted);
-  text-transform: uppercase;
+  color: var(--teal-900);
 }
