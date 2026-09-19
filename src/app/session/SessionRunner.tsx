@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import { ArrowRight, Minus, Plus, Volume2, VolumeX } from "lucide-react";
 import type {
   UiProfile,
   CognitiveExercise,
@@ -33,7 +33,7 @@ import { Button } from "@/components/Button/Button";
 import { Choice } from "@/components/Choice/Choice";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
-import { useSpeech, useVoiceCommand } from "@/lib/voice/useVoice";
+import { useSpeech, useVoiceCommand, useVoiceSpeed } from "@/lib/voice/useVoice";
 import { VoiceCue } from "./VoiceCue";
 import { MotorExercise } from "./MotorExercise";
 import { CardMatch } from "./games/CardMatch";
@@ -89,10 +89,28 @@ export function SessionRunner({
   const [saving, setSaving] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
-  const { speak, cancel, enabled: voiceEnabled, setEnabled } = useSpeech();
+  const { speak, cancel, speaking, enabled: voiceEnabled, setEnabled } = useSpeech();
+  const { speed, slower, faster, atSlowest, atFastest } = useVoiceSpeed();
   const submittedRef = useRef(false);
 
   const say = useCallback((text: string) => void speak(text), [speak]);
+
+  /**
+   * One step slower or faster, and say so.
+   *
+   * The confirmation only goes into a silence. Cutting off the prompt someone
+   * is listening to in order to announce that it changed speed would take away
+   * the very thing they were adjusting — and on the recorded voice the change
+   * is already audible mid-sentence, so there is nothing to announce there.
+   */
+  const adjustSpeed = useCallback(
+    (direction: -1 | 1) => {
+      if (direction < 0) slower();
+      else faster();
+      if (!speaking) say(direction < 0 ? "Speaking slower." : "Speaking faster.");
+    },
+    [faster, say, slower, speaking],
+  );
 
   const current = remaining[index];
   const done = plan.length - remaining.length + index;
@@ -160,6 +178,14 @@ export function SessionRunner({
     enabled: stage === "between",
   });
 
+  // Only where something else already has the microphone open. Speed control
+  // is not worth holding the microphone open for a whole session to provide,
+  // and these are the two points where the app does most of its talking, so
+  // they are where someone notices the pace and reaches to change it.
+  const speedByVoice = voiceEnabled && (stage === "intro" || stage === "between");
+  useVoiceCommand(["slow down", "slower"], () => adjustSpeed(-1), { enabled: speedByVoice });
+  useVoiceCommand(["speed up", "faster"], () => adjustSpeed(1), { enabled: speedByVoice });
+
   /* ---------------- Finishing ---------------- */
 
   const finishSession = useCallback(
@@ -210,6 +236,34 @@ export function SessionRunner({
     </button>
   );
 
+  // Hidden rather than disabled when speaking is off: there is no pace to set,
+  // and a dead control with no explanation beside it is worse than no control.
+  const speedControl = voiceEnabled ? (
+    <div className={styles.speed} role="group" aria-label="How fast the voice speaks">
+      <button
+        type="button"
+        className={styles.speedStep}
+        onClick={() => adjustSpeed(-1)}
+        disabled={atSlowest}
+        aria-label="Speak slower"
+      >
+        <Minus size={24} aria-hidden="true" />
+      </button>
+      <span className={`${styles.speedValue} label`} aria-live="polite">
+        {speed}&#215;
+      </span>
+      <button
+        type="button"
+        className={styles.speedStep}
+        onClick={() => adjustSpeed(1)}
+        disabled={atFastest}
+        aria-label="Speak faster"
+      >
+        <Plus size={24} aria-hidden="true" />
+      </button>
+    </div>
+  ) : null;
+
   if (remaining.length === 0 && stage !== "done") {
     return (
       <main className={styles.main}>
@@ -230,7 +284,10 @@ export function SessionRunner({
           max={plan.length}
           valueText={`${done} of ${plan.length} done`}
         />
-        {voiceToggle}
+        <div className={styles.voiceControls}>
+          {speedControl}
+          {voiceToggle}
+        </div>
       </div>
 
       {stage === "intro" && (

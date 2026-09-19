@@ -102,6 +102,97 @@ type Prompt = {
 
 let current: Prompt | null = null;
 
+/* ------------------------------------------------------------------ */
+/* How fast it speaks                                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The pace of the prompts, as a multiplier the person sets.
+ *
+ * A stroke affects how quickly speech can be followed, and that varies between
+ * two people far more than any single default can cover: someone with a
+ * receptive aphasia may need this at half, while someone who has heard the
+ * same instruction for six weeks finds the written pace slow enough to be
+ * irritating. Neither is served by a number chosen once in a stylesheet.
+ *
+ * 1 is the pace the prompts were written for rather than the voice's raw
+ * speed, so the unhurried tuning underneath stays where it is and the person
+ * adjusts around it.
+ */
+const SPEED_STEP = 0.25;
+const SLOWEST = 0.5;
+const FASTEST = 2;
+/** The deliberate, unhurried baseline. These are instructions, not prose. */
+const BASE_BROWSER_RATE = 0.92;
+const SPEED_KEY = "mendly.voice.speed";
+
+let speed = 1;
+let speedRestored = false;
+const speedWatchers = new Set<() => void>();
+
+/** To the nearest step, and inside the range. Anything else is not a speed. */
+function clampSpeed(value: number): number {
+  if (!Number.isFinite(value)) return 1;
+  const stepped = Math.round(value / SPEED_STEP) * SPEED_STEP;
+  return Math.min(FASTEST, Math.max(SLOWEST, stepped));
+}
+
+export function voiceSpeed(): number {
+  return speed;
+}
+
+export const VOICE_SPEED_RANGE = { step: SPEED_STEP, slowest: SLOWEST, fastest: FASTEST };
+
+export function setVoiceSpeed(value: number): void {
+  const next = clampSpeed(value);
+  if (next === speed) return;
+  speed = next;
+
+  // Applied to the prompt already playing, so pressing slower part way through
+  // a sentence slows that sentence. Waiting until the next one would make the
+  // control feel broken at exactly the moment it was reached for.
+  if (current?.audio) current.audio.playbackRate = next;
+
+  try {
+    window.localStorage.setItem(SPEED_KEY, String(next));
+  } catch {
+    // A private window, or storage turned off. The speed still works; it just
+    // will not be remembered, which is not worth telling anyone about.
+  }
+  speedWatchers.forEach((watch) => watch());
+}
+
+/** One step in either direction: -1 slower, 1 faster. */
+export function nudgeVoiceSpeed(steps: number): void {
+  setVoiceSpeed(speed + steps * SPEED_STEP);
+}
+
+function watchSpeed(onChange: () => void) {
+  speedWatchers.add(onChange);
+  return () => {
+    speedWatchers.delete(onChange);
+  };
+}
+
+/**
+ * Bring back the speed this person last chose.
+ *
+ * Read on the client only, and after the first render: the module starts at 1
+ * so the server and the first client render agree, and the stored value lands
+ * immediately after. Someone who needs half speed needs it every session, so
+ * asking them to set it again each time would defeat the point.
+ */
+function restoreSpeed(): void {
+  if (speedRestored) return;
+  speedRestored = true;
+  try {
+    const stored = window.localStorage.getItem(SPEED_KEY);
+    if (stored !== null) setVoiceSpeed(Number(stored));
+  } catch {
+    // Storage unavailable. The default stands.
+  }
+}
+
 /**
  * Stop talking, now.
  *
@@ -175,6 +266,7 @@ export async function speakAloud(text: string, done: () => void): Promise<void> 
 
     prompt.url = URL.createObjectURL(blob);
     const audio = new Audio(prompt.url);
+    audio.playbackRate = speed;
     prompt.audio = audio;
     audio.onended = finish;
     audio.onerror = () => speakWithBrowser(text, prompt, finish);
@@ -196,11 +288,38 @@ function speakWithBrowser(text: string, prompt: Prompt, done: () => void) {
     return;
   }
   const utterance = new SpeechSynthesisUtterance(text);
-  // Slower than default. These prompts are instructions to follow, not prose.
-  utterance.rate = 0.92;
+  // The baseline pace, times whatever the person has set. A rate cannot be
+  // changed once an utterance is speaking, so unlike the audio path this one
+  // takes effect on the next prompt.
+  utterance.rate = BASE_BROWSER_RATE * speed;
   utterance.onend = done;
   utterance.onerror = done;
   window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * The voice's pace, and the two things a screen does with it.
+ *
+ * Shared page state read through an external store rather than mirrored into
+ * component state, for the same reason the microphone's status is: there is
+ * one voice, and two screens disagreeing about how fast it is talking would
+ * be a bug waiting to happen.
+ */
+export function useVoiceSpeed() {
+  const value = useSyncExternalStore(watchSpeed, voiceSpeed, () => 1);
+
+  useEffect(restoreSpeed, []);
+
+  const slower = useCallback(() => nudgeVoiceSpeed(-1), []);
+  const faster = useCallback(() => nudgeVoiceSpeed(1), []);
+
+  return {
+    speed: value,
+    slower,
+    faster,
+    atSlowest: value <= SLOWEST,
+    atFastest: value >= FASTEST,
+  };
 }
 
 export function useSpeech() {
