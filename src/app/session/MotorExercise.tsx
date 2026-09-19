@@ -202,10 +202,8 @@ export function MotorExercise({
         if (!exercise.hideLiveFeedback) say(String(state.validReps));
       }
 
-      // `isComplete` also covers running out of attempts without meeting the
-      // target. That is still a finished exercise rather than one the patient
-      // abandoned, and the record carries valid_reps against target_reps, so
-      // the shortfall is visible without overstating what happened.
+      // Only valid repetitions complete the exercise. Failed attempts remain
+      // available in the result if the patient stops manually.
       if (tracker.isComplete) finish("completed");
     },
     [exercise.hideLiveFeedback, finish, live?.trackingValid, reportAlert, say],

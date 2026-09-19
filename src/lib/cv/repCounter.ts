@@ -15,8 +15,7 @@
  * seen the joint at rest at least once, so a person discovered already in the
  * end position — or an exercise definition whose resting angle does not match
  * how someone actually sits — cannot mint repetitions out of a starting
- * posture. And it stops counting at a fixed ceiling above the target, so a
- * miscounting exercise runs out rather than running away.
+ * posture. It stops counting once the required valid repetitions are reached.
  *
  * Exercises differ in whether the measured angle grows or shrinks during the
  * effort — a shoulder opens as the arm lifts, an elbow closes as the hand comes
@@ -32,11 +31,7 @@ import { mean } from "@/lib/cv/smoothing";
 export type RepPhase = "waiting" | "rising" | "holding" | "returning";
 
 export type RepCounterConfig = {
-  /**
-   * Repetitions the level asks for. The counter stops recording at
-   * `reps + ATTEMPT_ALLOWANCE`, so a person can fall short a few times without
-   * the exercise ending, but the number can never run away.
-   */
+  /** Repetitions the level asks for. Only valid repetitions meet this target. */
   targetReps: number;
   /** Angle the joint sits at between repetitions, in degrees. */
   restAngleDeg: number;
@@ -73,17 +68,6 @@ const HOLD_FRACTION = 0.85;
 const MIN_REP_CONFIDENCE = 0.6;
 /** Floor for the start/return thresholds, so tiny targets stay above noise. */
 const MIN_THRESHOLD_DEG = 5;
-/**
- * Attempts allowed beyond the target before the counter stops.
- *
- * Someone who falls short of the range on two movements should get to try
- * again rather than being told the exercise is over. Someone whose first
- * twenty movements all fall short has a problem the exercise cannot fix by
- * continuing, and the practitioner is better served by a short honest record
- * than by an unbounded one.
- */
-export const ATTEMPT_ALLOWANCE = 2;
-
 export class RepCounter {
   private phase: RepPhase = "waiting";
   private peakProgress = 0;
@@ -135,12 +119,9 @@ export class RepCounter {
     return Math.max(MIN_THRESHOLD_DEG, this.config.targetRomDeg * RETURN_FRACTION);
   }
 
-  /** Whether the counter has recorded as much as it is ever going to. */
+  /** Whether the required number of valid repetitions has been recorded. */
   get isFull(): boolean {
-    return (
-      this.validRepCount >= this.config.targetReps ||
-      this.reps.length >= this.config.targetReps + ATTEMPT_ALLOWANCE
-    );
+    return this.validRepCount >= this.config.targetReps;
   }
 
   /** Whether a repetition may still begin. False before the joint is at rest. */
