@@ -143,7 +143,7 @@ export function WordRecall({ exerciseId, level, rounds, size, say, onFinish }: W
           valueText={`${roundIndex} of ${rounds} done`}
         />
         <p className={`${styles.prompt} body-lg`}>Ready for the next list?</p>
-        <Button variant="primary" onClick={startRound}>
+        <Button variant="featured" onClick={startRound}>
           Next list
         </Button>
       </div>
@@ -191,7 +191,7 @@ export function WordRecall({ exerciseId, level, rounds, size, say, onFinish }: W
               );
             })}
           </div>
-          <Button variant="primary" onClick={submit}>
+          <Button variant="featured" onClick={submit}>
             Done choosing
           </Button>
         </>

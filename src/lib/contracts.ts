@@ -38,6 +38,10 @@ export const POSE_LANDMARK_NAMES = [
   "right_knee",
   "left_ankle",
   "right_ankle",
+  "left_heel",
+  "right_heel",
+  "left_foot_index",
+  "right_foot_index",
 ] as const;
 
 export type PoseLandmarkName = (typeof POSE_LANDMARK_NAMES)[number];
@@ -60,6 +64,9 @@ export type PoseFrame = Partial<Record<PoseLandmarkName, Landmark>>;
 
 /** Cognitive exercises run at the screen. Motor exercises need the camera. */
 export type Modality = "cognitive" | "motor";
+
+/** Which version of the patient interface a person sees. Set on the account. */
+export type UiProfile = "standard" | "aphasia" | "motor_visual";
 
 /** What the patient's body is doing. Standing needs practitioner permission. */
 export type Posture = "seated" | "standing";
@@ -110,6 +117,17 @@ export type MotorLevel = {
   targetRomDeg: number;
   /** Seconds the end position must be held. 0 means no hold. */
   holdSeconds: number;
+  /**
+   * Degrees either side of the target that still count, for exercises where
+   * going too far is as wrong as not going far enough.
+   *
+   * Most exercises want as much range as the person can manage, so more is
+   * never an error and this is left unset: anything at or past the target
+   * counts. A proprioception task is the opposite — the point is to land ON a
+   * remembered angle — so overshooting by 20 degrees is a miss, and setting
+   * this turns the target into a band.
+   */
+  toleranceDeg?: number;
 };
 
 export type MotorExercise = {
@@ -121,6 +139,33 @@ export type MotorExercise = {
   instruction: string;
   posture: Posture;
   view: BodyView;
+  /**
+   * Where the camera has to be for the movement to be measurable.
+   *
+   * `front` is the default and what a laptop webcam gives you. `side` is for
+   * movements that happen in the sagittal plane — raising an arm forwards,
+   * pulling the foot up — where a front-on view sees the limb end on: it
+   * projects onto almost nothing in the image and its angle becomes noise.
+   * The setup check tells the patient to turn before these start.
+   */
+  cameraAngle: "front" | "side";
+  /**
+   * Hide the live angle and rep feedback from the patient.
+   *
+   * Only for exercises where seeing the measurement would defeat the point —
+   * a proprioception task asks someone to find a remembered position without
+   * looking, and a number on screen would turn it into a tracking exercise.
+   */
+  hideLiveFeedback?: boolean;
+  /**
+   * Shortest the measured limb may appear in the image, as a fraction of the
+   * frame, before its angle is treated as unreliable.
+   *
+   * The default suits an arm. A foot is genuinely short in frame even when the
+   * camera can see it perfectly well, so an exercise measuring a small segment
+   * has to lower this or every good frame is thrown away as foreshortened.
+   */
+  minProjectedLimb?: number;
   tags: ExerciseTag[];
   joint: JointSpec;
   /**
@@ -152,7 +197,7 @@ export type CognitiveExercise = {
   name: string;
   instruction: string;
   /** Which game implementation renders this exercise. */
-  game: "card-match" | "symbol-sort" | "word-recall";
+  game: "card-match" | "symbol-sort" | "word-recall" | "math-drill";
   /** The cognitive function this game exercises, in plain words. */
   focus: string;
   tags: ExerciseTag[];
@@ -221,8 +266,15 @@ export type ExerciseSetProposal = {
   exercises: ProposedExercise[];
   /** One paragraph explaining the set as a whole. */
   summary: string;
-  /** Which engine produced it, recorded so a demo can be explained honestly. */
-  source: "gemini" | "rules-engine";
+  /**
+   * Which engine produced it, recorded so a draft can be explained honestly.
+   *
+   * `backboard` is the normal path: the LLM service from the architecture
+   * plan, routed to Gemini. `rules-engine` is the local deterministic planner,
+   * which runs when no key is configured or when the model call fails, so a
+   * patient always has a session to do.
+   */
+  source: "backboard" | "rules-engine";
 };
 
 /** A single way a proposal broke the practitioner's rules. */

@@ -1,72 +1,99 @@
-/* Flat brand bar. The accent stays out of navigation. */
-.bar {
-  background: var(--brand);
-  color: var(--inverse);
-}
+/* bundle.css's .rs-topnav draws the bar. This file lines it up with the page
+   column and keeps every target at 48px. */
+
+/* The bar spans the viewport; one column inside it, the same on every route,
+   so nothing in it moves when the page changes. 1080px matches the widest page
+   column (Today, the practitioner pages); every page column shares it. */
+.bar:global(.rs-topnav) { padding: 0; }
 
 .inner {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-2) var(--space-5);
+  flex: 1;
+  min-width: 0;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 0 var(--space-5);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-5);
+  gap: var(--space-5);
 }
 
-.wide { max-width: 1080px; }
+.inner > :global(.rs-topnav-mark) { flex: none; }
+
+/* Never wraps. On a narrow screen the list scrolls sideways instead, so the
+   bar keeps one height. The padding leaves room for the focus ring, which the
+   scroll box would otherwise clip. */
+.nav {
+  position: relative;
+  min-width: 0;
+  overflow-x: auto;
+  padding: var(--space-2);
+}
 
 .list {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
+  flex-wrap: nowrap;
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.wordmark,
-.link {
+.link { white-space: nowrap; }
+
+.target {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: 48px;
-  border-radius: var(--radius-sm);
-  color: var(--inverse);
   text-decoration: none;
 }
 
-.wordmark {
-  padding: 0 var(--space-2);
-  margin-left: calc(-1 * var(--space-2));
+/* EXPERIMENT: the active tab is marked in coral-300 (label and a 3px underline),
+   and one underline slides between tabs. This breaks "one coral per screen";
+   revert it if it does not earn its place. */
+
+.link.link {
+  border-bottom-width: 3px;
+  transition: color 180ms ease, opacity 180ms ease;
+}
+.link.link[aria-current="page"] {
+  color: var(--coral-300);
+  border-bottom-color: var(--coral-300);
 }
 
-.link {
-  padding: 0 var(--space-3);
-  transition: background-color 150ms ease;
-}
+/* Once the sliding underline has measured, it draws the mark instead. */
+.nav[data-underline="ready"] .link.link[aria-current="page"] { border-bottom-color: transparent; }
 
-.wordmark:hover,
-.link:hover {
-  background: var(--brand-deep);
-}
+/* A resize re-places the underline without sliding it. */
+.nav[data-settling] .link.link,
+.nav[data-settling] .underline { transition: none; }
 
-.wordmark:focus-visible,
-.link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+.underline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--coral-300);
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    transform 220ms cubic-bezier(0.2, 0, 0, 1),
+    width 220ms cubic-bezier(0.2, 0, 0, 1);
 }
+.nav[data-underline="ready"] .underline { visibility: visible; }
 
-.active {
-  text-decoration: underline;
-  text-decoration-color: var(--inverse);
-  text-decoration-thickness: 2px;
-  text-underline-offset: var(--space-2);
+@media (prefers-reduced-motion: reduce) {
+  .link.link,
+  .underline { transition: none; }
 }
 
 /* Sits outside the nav list: signing out is not a place in the product, and
    it must not count against the five-item limit. */
 .signOut {
+  flex: none;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -76,9 +103,11 @@
   border: 2px solid transparent;
   border-radius: var(--radius-md);
   background: transparent;
-  color: var(--inverse);
-  font-family: var(--font-sans);
+  color: var(--on-teal);
   cursor: pointer;
 }
 
-.signOut:hover { border-color: var(--inverse); }
+.signOut:hover { border-color: var(--on-teal); }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .signOut { min-height: var(--space-8); }

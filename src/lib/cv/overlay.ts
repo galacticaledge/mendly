@@ -37,16 +37,16 @@ type Palette = { faint: string; measured: string; lost: string };
 function palette(canvas: HTMLCanvasElement): Palette {
   const styles = getComputedStyle(canvas);
   return {
-    faint: styles.getPropertyValue("--brand-wash").trim() || "#C3D6CD",
-    measured: styles.getPropertyValue("--brand").trim() || "#276762",
-    lost: styles.getPropertyValue("--caution-deep").trim() || "#80571D",
+    faint: styles.getPropertyValue("--teal-100").trim() || "#e3eded",
+    measured: styles.getPropertyValue("--teal-700").trim() || "#326c6d",
+    lost: styles.getPropertyValue("--ink-900").trim() || "#211f1a",
   };
 }
 
 export type OverlayOptions = {
   /** The three landmarks the current exercise measures, drawn prominently. */
   measured?: PoseLandmarkName[];
-  /** Draws the overlay in the caution colour when tracking is not usable. */
+  /** Draws the overlay in ink when tracking is not usable. */
   trackingValid?: boolean;
 };
 

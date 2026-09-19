@@ -1,10 +1,41 @@
+/* The page column: the same width, centering and top edge on every patient
+   route and the practitioner pages, and the same as the nav's inner column, so
+   nothing moves sideways between tabs. */
 .main {
-  max-width: 720px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: var(--space-7) var(--space-5) var(--space-9);
   display: flex;
   flex-direction: column;
   gap: var(--space-7);
+}
+
+/* Reading pages keep a 720px measure, left-aligned in the shared column. */
+.main:not(.today) > * { max-width: 720px; }
+
+/* Today: two columns on a wide screen, the session on the left as the focal
+   point, the week and today's exercises on the right. */
+.today {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-7) var(--space-8);
+}
+
+.focus,
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.aside { gap: var(--space-7); }
+
+/* The card fills its column so its right edge lines up with everything else. */
+.today :global(.rs-session-card) { max-width: none; }
+
+@media (max-width: 900px) {
+  .today { grid-template-columns: minmax(0, 1fr); }
 }
 
 .greeting {
@@ -21,11 +52,11 @@
 }
 
 .welcome {
-  color: var(--brand);
+  color: var(--teal-700);
 }
 
 .muted {
-  color: var(--ink-muted);
+  color: var(--ink-600);
 }
 
 .section {
@@ -54,20 +85,19 @@
   gap: var(--space-4);
 }
 
-/* A note the practitioner attached to today's set. Sits in the session card,
-   so it uses the page ground to separate itself from the card's surface. */
+/* A note from the care team. A label over the text, no box: whitespace
+   separates it, and it never becomes a panel inside the session card. */
 .note {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   margin: 0;
-  padding: var(--space-4);
-  background: var(--surface);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
+  color: var(--ink-900);
 }
 
 .note span {
-  color: var(--ink-muted);
-  text-transform: uppercase;
+  color: var(--teal-900);
 }
+
+/* Aphasia-friendly profile: more room between sections. See profiles.css. */
+:global([data-profile="aphasia"]) .main { gap: var(--space-8); }

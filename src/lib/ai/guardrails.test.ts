@@ -25,7 +25,7 @@ function proposal(exercises: { exerciseId: string; level: number }[]): ExerciseS
   return {
     exercises: exercises.map((e) => ({ ...e, level: e.level as 1, rationale: "test" })),
     summary: "test",
-    source: "gemini",
+    source: "backboard",
   };
 }
 

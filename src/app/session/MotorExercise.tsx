@@ -37,11 +37,11 @@ import { Button } from "@/components/Button/Button";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { useVoiceCommand } from "@/lib/voice/useVoice";
+import { VoiceCue } from "./VoiceCue";
 import styles from "./session.module.css";
 
 /** Frames to collect before deciding whether the setup is good enough. */
 const SETUP_FRAMES = 45;
-const SETUP_TIMEOUT_MS = 25_000;
 /** The safety watcher only needs a few samples a second. */
 const SAFETY_INTERVAL_MS = 200;
 
@@ -54,7 +54,6 @@ export type MotorExerciseProps = {
   sessionId: string;
   /** Speaks a line, if the patient has voice prompts on. */
   say: (text: string) => void;
-  voiceEnabled: boolean;
   onFinish: (result: MotorResult) => void;
 };
 
@@ -64,7 +63,6 @@ export function MotorExercise({
   affectedSide,
   sessionId,
   say,
-  voiceEnabled,
   onFinish,
 }: MotorExerciseProps) {
   const rung = getLevel(exercise, level) as {
@@ -76,8 +74,6 @@ export function MotorExercise({
   const [stage, setStage] = useState<Stage>("setup");
   const [live, setLive] = useState<LiveTrackingState | null>(null);
   const [setupAdvice, setSetupAdvice] = useState<string | null>(null);
-  const [setupTimedOut, setSetupTimedOut] = useState(false);
-  const [setupAttempt, setSetupAttempt] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -92,11 +88,11 @@ export function MotorExercise({
     new EnvironmentChecker(
       viewForPosture(exercise.posture),
       requiredLandmarksFor(exercise, affectedSide),
+      exercise.cameraAngle,
     ),
   );
   const lastSafetyAtRef = useRef(0);
   const stageRef = useRef<Stage>("setup");
-  const setupTimedOutRef = useRef(false);
   const spokenRepRef = useRef(0);
   const finishedRef = useRef(false);
 
@@ -171,7 +167,6 @@ export function MotorExercise({
       }
 
       if (stageRef.current === "setup" || stageRef.current === "ready") {
-        if (stageRef.current === "setup" && setupTimedOutRef.current) return;
         const checker = checkerRef.current;
         checker.update(frame);
 
@@ -202,7 +197,9 @@ export function MotorExercise({
       // most reassuring possible way.
       if (state.validReps > spokenRepRef.current) {
         spokenRepRef.current = state.validReps;
-        say(String(state.validReps));
+        // Silent for a proprioception task: hiding the count on screen and
+        // then reading it aloud would give the game away.
+        if (!exercise.hideLiveFeedback) say(String(state.validReps));
       }
 
       // `isComplete` also covers running out of attempts without meeting the
@@ -211,22 +208,13 @@ export function MotorExercise({
       // the shortfall is visible without overstating what happened.
       if (tracker.isComplete) finish("completed");
     },
-    [finish, live?.trackingValid, reportAlert, say],
+    [exercise.hideLiveFeedback, finish, live?.trackingValid, reportAlert, say],
   );
 
   const { videoRef, status, error } = usePoseStream({
     onFrame: handleFrame,
     enabled: true,
   });
-
-  useEffect(() => {
-    if (stage !== "setup" || status !== "running") return;
-    const timeout = setTimeout(() => {
-      setupTimedOutRef.current = true;
-      setSetupTimedOut(true);
-    }, SETUP_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [stage, status, setupAttempt]);
 
   // Keep the overlay's pixel grid matched to the video it sits on.
   useEffect(() => {
@@ -244,22 +232,14 @@ export function MotorExercise({
     say(exercise.instruction);
   }, [exercise.instruction, say]);
 
-  const retrySetup = useCallback(() => {
-    checkerRef.current = new EnvironmentChecker(
-      viewForPosture(exercise.posture),
-      requiredLandmarksFor(exercise, affectedSide),
-    );
-    setupTimedOutRef.current = false;
-    setSetupTimedOut(false);
-    setSetupAdvice(null);
-    setSetupAttempt((attempt) => attempt + 1);
-  }, [exercise, affectedSide]);
-
   // "I'm ready" starts the exercise without anyone reaching for the screen,
   // which is the point: the person is about to use the arm they would reach
   // with. The button beside it does the same thing.
-  useVoiceCommand(["i'm ready", "im ready", "i am ready", "ready"], begin, {
-    enabled: voiceEnabled && stage === "ready",
+  //
+  // "ready" on its own is not in the list. It matched "I'm not ready", and it
+  // matched the prompt asking the question.
+  const voice = useVoiceCommand(["im ready", "i am ready", "lets go", "begin"], begin, {
+    enabled: stage === "ready",
   });
 
   useEffect(() => {
@@ -275,6 +255,13 @@ export function MotorExercise({
   const attempts = live?.reps ?? 0;
   const shortAttempts = Math.max(0, attempts - validReps);
   const setupNeedsFullView = exercise.view === "full";
+  // Sagittal movements are measured from the side; a front-on view sees the
+  // limb end on and the angle becomes noise.
+  const needsSideView = exercise.cameraAngle === "side";
+  // A proprioception task hides its own measurement: showing the angle or a
+  // running count would turn finding a remembered position into reading a
+  // number off the screen.
+  const hideFeedback = exercise.hideLiveFeedback === true;
 
   return (
     <section className={styles.exercise} aria-labelledby="exercise-title">
@@ -282,7 +269,7 @@ export function MotorExercise({
         <p className="caption">
           {exercise.posture === "standing" ? "Standing" : "Seated"}
         </p>
-        <h2 id="exercise-title" className="h1">
+        <h2 id="exercise-title" className="display">
           {exercise.name}
         </h2>
         <p className={`${styles.instruction} body-lg`}>
@@ -317,23 +304,20 @@ export function MotorExercise({
         )}
       </div>
 
-      {stage === "setup" && (status === "running" || setupTimedOut) && (
+      {stage === "setup" && status === "running" && (
         <div className={styles.panel}>
-          {setupTimedOut ? (
-            <>
-              <p className="body-lg" role="alert">
-                A reliable camera view could not be established for this exercise.
-              </p>
-              <Button onClick={retrySetup}>Try camera again</Button>
-            </>
-          ) : (
-            <p className="body-lg">
-              {setupNeedsFullView
-                ? "Checking the camera can see all of you."
-                : "Checking the camera can see you."}
+          {needsSideView && (
+            <p className={`${styles.advice} body-lg`}>
+              <StatusTag tone="caution">Turn</StatusTag> Turn so your side is facing the camera for
+              this one.
             </p>
           )}
-          {setupAdvice && !setupTimedOut && (
+          <p className="body-lg">
+            {setupNeedsFullView
+              ? "Checking the camera can see all of you."
+              : "Checking the camera can see you."}
+          </p>
+          {setupAdvice && (
             <p className={`${styles.advice} body-lg`}>
               <StatusTag tone="caution">Move</StatusTag> {setupAdvice}
             </p>
@@ -351,7 +335,14 @@ export function MotorExercise({
               : ""}
             .
           </p>
-          <Button variant="primary" onClick={begin}>
+          {hideFeedback && (
+            <p className={`${styles.hint} body`}>
+              The screen will not show you how far you have moved for this one. That is on purpose —
+              the exercise is finding the position by feel.
+            </p>
+          )}
+          <VoiceCue status={voice.status} phrase="I'm ready" />
+          <Button variant="featured" onClick={begin}>
             I&apos;m ready
           </Button>
         </div>
@@ -359,19 +350,31 @@ export function MotorExercise({
 
       {stage === "running" && (
         <div className={styles.panel}>
-          <ProgressBar
-            label="Repetitions"
-            value={validReps}
-            max={rung.reps}
-            valueText={`${validReps} of ${rung.reps} done`}
-          />
-
-          {shortAttempts > 0 && (
-            <p className={`${styles.hint} body`}>
-              {shortAttempts === 1
-                ? "One movement did not reach far enough to count."
-                : `${shortAttempts} movements did not reach far enough to count.`}
+          {hideFeedback ? (
+            // No count, no angle, no "almost there". The person is meant to be
+            // sensing where their arm is, and any of those would answer the
+            // question for them. Tracking state still shows, because a camera
+            // that cannot see them is a problem they do need to know about.
+            <p className={`${styles.guidance} body-lg`} aria-live="polite">
+              Move to the position, hold it, then come back down. Keep going until I say stop.
             </p>
+          ) : (
+            <>
+              <ProgressBar
+                label="Repetitions"
+                value={validReps}
+                max={rung.reps}
+                valueText={`${validReps} of ${rung.reps} done`}
+              />
+
+              {shortAttempts > 0 && (
+                <p className={`${styles.hint} body`}>
+                  {shortAttempts === 1
+                    ? "One movement did not reach far enough to count."
+                    : `${shortAttempts} movements did not reach far enough to count.`}
+                </p>
+              )}
+            </>
           )}
 
           <div className={styles.liveRow}>
@@ -386,7 +389,7 @@ export function MotorExercise({
             )}
           </div>
 
-          {live?.guidance && (
+          {!hideFeedback && live?.guidance && (
             <p className={`${styles.guidance} body-lg`} aria-live="polite">
               {live.guidance}
             </p>

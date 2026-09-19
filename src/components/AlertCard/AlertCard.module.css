@@ -4,27 +4,27 @@
   gap: var(--space-4);
   padding: var(--space-5);
   border-radius: var(--radius-md);
-  border: 2px solid var(--line);
+  border: 2px solid var(--border-divider);
   background: var(--surface-raised);
   list-style: none;
 }
 
-/* Severity tints the row, but the word and icon shape carry the meaning. */
-.urgent { border-color: var(--accent-deep); background: var(--accent-wash); }
-.attention { border-color: var(--caution-deep); background: var(--caution-wash); }
-.info { border-color: var(--line); }
+/* Severity is carried by the word and the icon shape; urgent alone is tinted. */
+.urgent { border-color: var(--coral-700); background: var(--coral-100); }
+.attention { border-color: var(--border-control); }
+.info { border-color: var(--border-divider); }
 
-.urgent .icon { color: var(--accent-deep); }
-.attention .icon { color: var(--caution-deep); }
-.info .icon { color: var(--ink-muted); }
+.urgent .icon { color: var(--coral-700); }
+.attention .icon { color: var(--ink-900); }
+.info .icon { color: var(--ink-600); }
 
 .icon { flex: none; margin-top: var(--space-1); }
 
 .body { flex: 1; display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-.name { color: var(--ink); }
-.message { color: var(--ink); margin: 0; }
-.time { color: var(--ink-muted); margin: 0; }
+.name { color: var(--ink-900); }
+.message { color: var(--ink-900); margin: 0; }
+.time { color: var(--ink-600); margin: 0; }
 
 .evidence {
   display: flex;
@@ -32,12 +32,12 @@
   gap: var(--space-2) var(--space-5);
   margin: var(--space-2) 0 0;
   padding: var(--space-3) var(--space-4);
-  background: var(--surface);
+  background: var(--canvas);
   border-radius: var(--radius-sm);
 }
 
 .pair { display: flex; flex-direction: column; gap: var(--space-1); }
-.pair dt { color: var(--ink-muted); text-transform: uppercase; }
-.pair dd { color: var(--ink); margin: 0; }
+.pair dt { color: var(--ink-600); text-transform: uppercase; }
+.pair dd { color: var(--ink-900); margin: 0; }
 
 .action { flex: none; }

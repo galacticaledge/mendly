@@ -32,6 +32,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Raise your arm out to the side, then lower it slowly.",
     posture: "seated",
     view: "upper",
+    cameraAngle: "front",
     tags: [],
     // Shoulder abduction: the angle at the shoulder opens as the arm lifts
     // away from the body, measured from the hip through the shoulder to the
@@ -55,6 +56,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Raise your arm up above your head, then lower it slowly.",
     posture: "seated",
     view: "upper",
+    cameraAngle: "front",
     // Tagged so a practitioner can rule out overhead work with one setting,
     // for shoulder subluxation or pain, without editing the pool by hand.
     tags: ["overhead_reach"],
@@ -77,6 +79,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Bend your elbow to bring your hand towards your shoulder, then straighten it.",
     posture: "seated",
     view: "upper",
+    cameraAngle: "front",
     tags: [],
     // Elbow flexion: shoulder → elbow → wrist. The angle closes as the hand
     // comes up, so the active direction is decreasing.
@@ -99,6 +102,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Reach your arm forward and out to about shoulder height, and hold it there.",
     posture: "seated",
     view: "upper",
+    cameraAngle: "front",
     tags: [],
     // Measured at the shoulder, not the elbow, and reached out on a diagonal
     // rather than straight ahead. Both choices are forced by the camera.
@@ -134,6 +138,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Lift one knee up, then put it down. Keep sitting tall.",
     posture: "seated",
     view: "full",
+    cameraAngle: "front",
     tags: ["bilateral"],
     // Hip flexion: shoulder → hip → knee. Lifting the knee closes the angle.
     joint: { name: "hip", from: "left_shoulder", vertex: "left_hip", to: "left_knee" },
@@ -155,6 +160,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Stand up from your chair, then sit back down slowly.",
     posture: "standing",
     view: "full",
+    cameraAngle: "front",
     tags: ["weight_bearing", "balance"],
     // The hip angle opens as the body rises out of the chair.
     joint: { name: "hip", from: "left_shoulder", vertex: "left_hip", to: "left_knee" },
@@ -176,6 +182,7 @@ const MOTOR: MotorExercise[] = [
     instruction: "Stand tall and reach your arm out to the side, then bring it back.",
     posture: "standing",
     view: "full",
+    cameraAngle: "front",
     tags: ["balance"],
     joint: { name: "shoulder", from: "left_hip", vertex: "left_shoulder", to: "left_elbow" },
     direction: "increasing",
@@ -187,6 +194,141 @@ const MOTOR: MotorExercise[] = [
       { level: 3, reps: 8, targetRomDeg: 65, holdSeconds: 2 },
       { level: 4, reps: 10, targetRomDeg: 75, holdSeconds: 2 },
       { level: 5, reps: 12, targetRomDeg: 85, holdSeconds: 3 },
+    ],
+  },
+  {
+    id: "shoulder_flexion",
+    modality: "motor",
+    name: "Arms forward and down",
+    instruction:
+      "Hold both arms out in front of you, then lower them down to your sides and raise them back up.",
+    posture: "seated",
+    view: "upper",
+    // Sagittal: the arm travels forwards and up, straight towards a front-on
+    // lens, where it projects onto almost nothing. Measured from the side the
+    // same movement sweeps right across the image.
+    cameraAngle: "side",
+    tags: [],
+    joint: { name: "shoulder", from: "left_hip", vertex: "left_shoulder", to: "left_elbow" },
+    direction: "increasing",
+    restAngleDeg: 10,
+    side: "both",
+    levels: [
+      { level: 1, reps: 5, targetRomDeg: 45, holdSeconds: 0 },
+      { level: 2, reps: 8, targetRomDeg: 65, holdSeconds: 0 },
+      { level: 3, reps: 10, targetRomDeg: 90, holdSeconds: 1 },
+      { level: 4, reps: 12, targetRomDeg: 120, holdSeconds: 2 },
+      { level: 5, reps: 15, targetRomDeg: 150, holdSeconds: 2 },
+    ],
+  },
+  {
+    id: "diagonal_reach",
+    modality: "motor",
+    name: "Reach across your body",
+    instruction:
+      "Start with your arm out to the side, then reach across your body to touch your opposite hip.",
+    posture: "seated",
+    view: "upper",
+    cameraAngle: "front",
+    tags: [],
+    // The arm sweeps across the image, from out at the side down to the
+    // opposite hip, so the shoulder angle closes through the movement.
+    joint: { name: "shoulder", from: "left_hip", vertex: "left_shoulder", to: "left_elbow" },
+    direction: "decreasing",
+    restAngleDeg: 90,
+    side: "mirror",
+    levels: [
+      { level: 1, reps: 5, targetRomDeg: 30, holdSeconds: 0 },
+      { level: 2, reps: 8, targetRomDeg: 45, holdSeconds: 0 },
+      { level: 3, reps: 10, targetRomDeg: 55, holdSeconds: 1 },
+      { level: 4, reps: 12, targetRomDeg: 65, holdSeconds: 1 },
+      { level: 5, reps: 15, targetRomDeg: 70, holdSeconds: 2 },
+    ],
+  },
+  {
+    id: "shoulder_claps",
+    modality: "motor",
+    name: "Open and clap",
+    instruction:
+      "Hold both arms out to the sides, then bring your hands together in front of you. Keep your elbows straight.",
+    posture: "seated",
+    view: "upper",
+    cameraAngle: "front",
+    tags: ["bilateral"],
+    // Measured ACROSS the chest rather than from the hip, which is what makes
+    // this work face-on. Arms out to the side and arms together in front are
+    // both about 90° away from the trunk, so a hip-shoulder-elbow angle can
+    // barely tell them apart. Taken from the opposite shoulder instead, the
+    // arm points away from the body at the start (~180°) and towards the
+    // midline at the clap (~40°), which is a large, clean sweep.
+    joint: { name: "chest", from: "right_shoulder", vertex: "left_shoulder", to: "left_elbow" },
+    direction: "decreasing",
+    restAngleDeg: 175,
+    side: "both",
+    levels: [
+      { level: 1, reps: 5, targetRomDeg: 60, holdSeconds: 0 },
+      { level: 2, reps: 8, targetRomDeg: 80, holdSeconds: 0 },
+      { level: 3, reps: 10, targetRomDeg: 100, holdSeconds: 1 },
+      { level: 4, reps: 12, targetRomDeg: 115, holdSeconds: 1 },
+      { level: 5, reps: 15, targetRomDeg: 125, holdSeconds: 2 },
+    ],
+  },
+  {
+    id: "proprioception_match",
+    modality: "motor",
+    name: "Find the same place again",
+    instruction:
+      "Raise your arm out to the side to the place you are shown, then lower it and find that same place again on your own.",
+    posture: "seated",
+    view: "upper",
+    cameraAngle: "front",
+    // The screen shows no angle and no running count during this one. The
+    // task is to reproduce a remembered position, and a number on screen
+    // would turn it into a tracking exercise instead of a sensing one.
+    hideLiveFeedback: true,
+    tags: ["sustained_attention"],
+    joint: { name: "shoulder", from: "left_hip", vertex: "left_shoulder", to: "left_elbow" },
+    direction: "increasing",
+    restAngleDeg: 15,
+    side: "mirror",
+    // Levels are target ANGLES to find, not ranges to exceed, and the band
+    // narrows as it gets harder. The source protocol uses 30° and 60° with a
+    // five-second hold at the target.
+    levels: [
+      { level: 1, reps: 5, targetRomDeg: 30, holdSeconds: 5, toleranceDeg: 15 },
+      { level: 2, reps: 8, targetRomDeg: 30, holdSeconds: 5, toleranceDeg: 12 },
+      { level: 3, reps: 10, targetRomDeg: 60, holdSeconds: 5, toleranceDeg: 12 },
+      { level: 4, reps: 12, targetRomDeg: 60, holdSeconds: 5, toleranceDeg: 9 },
+      { level: 5, reps: 15, targetRomDeg: 60, holdSeconds: 5, toleranceDeg: 7 },
+    ],
+  },
+  {
+    id: "ankle_dorsiflexion",
+    modality: "motor",
+    name: "Pull your foot up",
+    instruction:
+      "Sit with your foot hanging free, then pull your foot and toes up towards your shin and let them down again.",
+    posture: "seated",
+    view: "full",
+    // Sagittal again, and a small joint: the ankle has to be seen from the
+    // side or there is nothing to measure.
+    cameraAngle: "side",
+    tags: [],
+    // Knee to ankle to the ball of the foot. Pulling the foot up closes this
+    // angle, which is the movement that stops the toes catching when walking.
+    // A foot spans only a few percent of the frame even side-on and fully
+    // visible, so the default foreshortening floor would reject every frame.
+    minProjectedLimb: 0.02,
+    joint: { name: "ankle", from: "left_knee", vertex: "left_ankle", to: "left_foot_index" },
+    direction: "decreasing",
+    restAngleDeg: 110,
+    side: "mirror",
+    levels: [
+      { level: 1, reps: 8, targetRomDeg: 10, holdSeconds: 0 },
+      { level: 2, reps: 12, targetRomDeg: 15, holdSeconds: 1 },
+      { level: 3, reps: 15, targetRomDeg: 20, holdSeconds: 2 },
+      { level: 4, reps: 20, targetRomDeg: 25, holdSeconds: 2 },
+      { level: 5, reps: 25, targetRomDeg: 30, holdSeconds: 3 },
     ],
   },
 ];
@@ -242,6 +384,25 @@ const COGNITIVE: CognitiveExercise[] = [
       { level: 3, rounds: 3, size: 5, secondsPerRound: 0 },
       { level: 4, rounds: 3, size: 6, secondsPerRound: 45 },
       { level: 5, rounds: 4, size: 7, secondsPerRound: 40 },
+    ],
+  },
+  {
+    id: "math_drill",
+    modality: "cognitive",
+    name: "Number work",
+    instruction: "Work out each sum and choose the answer.",
+    game: "math-drill",
+    focus: "Working things out",
+    tags: ["processing_speed", "working_memory"],
+    // Starts at single-digit addition and grows in both size and operation,
+    // which is the progression the source describes: simple sums first, more
+    // complex calculations as accuracy and speed improve.
+    levels: [
+      { level: 1, rounds: 6, size: 1, secondsPerRound: 0 },
+      { level: 2, rounds: 8, size: 2, secondsPerRound: 0 },
+      { level: 3, rounds: 10, size: 3, secondsPerRound: 20 },
+      { level: 4, rounds: 12, size: 4, secondsPerRound: 15 },
+      { level: 5, rounds: 14, size: 5, secondsPerRound: 12 },
     ],
   },
 ];

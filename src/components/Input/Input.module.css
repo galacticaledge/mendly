@@ -5,12 +5,12 @@
 }
 
 .label {
-  color: var(--ink);
+  color: var(--ink-900);
 }
 
 .hint {
   margin: 0;
-  color: var(--ink-muted);
+  color: var(--ink-600);
 }
 
 .input {
@@ -18,37 +18,34 @@
   width: 100%;
   min-height: 48px;
   padding: var(--space-2) var(--space-4);
-  border: 2px solid var(--line-strong);
+  border: 2px solid var(--border-control);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--ink);
-  font-family: inherit;
+  color: var(--ink-900);
   transition: border-color 150ms ease;
 }
 
 .input::placeholder {
-  color: var(--ink-muted);
+  color: var(--ink-600);
 }
 
 .input:hover:not(:disabled) {
-  border-color: var(--ink);
+  border-color: var(--ink-900);
 }
 
 .input:focus-visible {
-  outline: none;
-  border-color: var(--ink);
-  box-shadow: var(--focus-ring);
+  border-color: var(--ink-900);
 }
 
 .input:disabled {
-  background: var(--surface-sunken);
-  color: var(--ink-muted);
+  background: var(--border-divider);
+  color: var(--ink-600);
   cursor: not-allowed;
 }
 
 .invalid,
 .invalid:hover:not(:disabled) {
-  border-color: var(--accent-deep);
+  border-color: var(--coral-700);
 }
 
 .error {
@@ -56,10 +53,13 @@
   align-items: center;
   gap: var(--space-2);
   margin: 0;
-  color: var(--accent-deep);
+  color: var(--coral-700);
   font-weight: 600;
 }
 
 .errorIcon {
   flex-shrink: 0;
 }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .input { min-height: var(--space-8); }

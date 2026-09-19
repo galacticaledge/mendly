@@ -19,7 +19,7 @@ config({ path: [".env.local", ".env"], quiet: true });
 import { getPool, query, queryOne } from "@/lib/db/client";
 import { migrate } from "@/lib/db/migrate";
 import { hashPassword } from "@/lib/auth/session";
-import type { Level, MotorResult, PractitionerRules } from "@/lib/contracts";
+import type { Level, MotorResult, PractitionerRules, UiProfile } from "@/lib/contracts";
 import { getLevel, requireExercise } from "@/lib/exercises/catalog";
 import { proposeAndStore } from "@/lib/ai/propose";
 
@@ -114,14 +114,16 @@ async function createPatient(input: {
   affectedSide: "left" | "right" | "both";
   weeksSince: number;
   history: string;
+  uiProfile: UiProfile;
 }) {
   const diagnosed = new Date(Date.now() - input.weeksSince * 7 * 864e5);
   return queryOne<{ id: string }>(
     `INSERT INTO patients
        (practitioner_id, email, first_name, last_name, password_hash,
-        stroke_type, affected_side, diagnosis_date, history)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     ON CONFLICT (email) DO UPDATE SET first_name = EXCLUDED.first_name
+        stroke_type, affected_side, diagnosis_date, history, ui_profile)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     ON CONFLICT (email) DO UPDATE SET first_name = EXCLUDED.first_name,
+       ui_profile = EXCLUDED.ui_profile
      RETURNING id`,
     [
       input.practitionerId,
@@ -133,6 +135,7 @@ async function createPatient(input: {
       input.affectedSide,
       diagnosed,
       input.history,
+      input.uiProfile,
     ],
   );
 }
@@ -243,12 +246,31 @@ async function main() {
     affectedSide: "right",
     weeksSince: 9,
     history: "Right-sided weakness in the arm. Sits independently. Walks short distances with a stick.",
+    uiProfile: "aphasia",
   });
   if (!sam) throw new Error("Could not create Sam.");
 
   const samRules: PractitionerRules = {
-    allowedExerciseIds: ["card_match", "symbol_sort", "arm_raise", "elbow_bend", "forward_reach"],
-    maxLevel: { card_match: 3, symbol_sort: 2, arm_raise: 3, elbow_bend: 2, forward_reach: 2 },
+    allowedExerciseIds: [
+      "card_match",
+      "symbol_sort",
+      "math_drill",
+      "arm_raise",
+      "elbow_bend",
+      "forward_reach",
+      "diagonal_reach",
+      "shoulder_claps",
+    ],
+    maxLevel: {
+      card_match: 3,
+      symbol_sort: 2,
+      math_drill: 2,
+      arm_raise: 3,
+      elbow_bend: 2,
+      forward_reach: 2,
+      diagonal_reach: 2,
+      shoulder_claps: 2,
+    },
     standingAllowed: false,
     // Shoulder pain on the affected side, so overhead work is excluded by tag.
     contraindications: ["overhead_reach"],
@@ -344,6 +366,7 @@ async function main() {
     affectedSide: "left",
     weeksSince: 22,
     history: "Left-sided weakness. Stands and walks indoors independently. Working on stamina and balance.",
+    uiProfile: "motor_visual",
   });
   if (!rosa) throw new Error("Could not create Rosa.");
 
@@ -351,16 +374,24 @@ async function main() {
     allowedExerciseIds: [
       "card_match",
       "word_recall",
+      "math_drill",
       "arm_raise",
       "overhead_arm_raise",
+      "shoulder_flexion",
+      "proprioception_match",
+      "ankle_dorsiflexion",
       "seated_march",
       "sit_to_stand",
     ],
     maxLevel: {
       card_match: 4,
       word_recall: 3,
+      math_drill: 3,
       arm_raise: 4,
       overhead_arm_raise: 3,
+      shoulder_flexion: 3,
+      proprioception_match: 2,
+      ankle_dorsiflexion: 3,
       seated_march: 4,
       sit_to_stand: 3,
     },
@@ -370,7 +401,9 @@ async function main() {
     maxMotorMinutes: 18,
     affectedSide: "left",
     goals: ["Climb the stairs at home", "Stand long enough to make a meal"],
-    notes: "Standing work is fine with a chair behind her. Confident, so watch that levels do not run ahead of control.",
+    notes:
+      "Standing work is fine with a chair behind her. Confident, so watch that levels do not run ahead of control. " +
+      "Ankle work is for the foot drop on the left; she needs reminding to turn side-on to the camera for it.",
   };
   await queryOne(
     `INSERT INTO rules (patient_id, practitioner_id, payload) VALUES ($1, $2, $3) RETURNING id`,
@@ -404,12 +437,13 @@ async function main() {
     affectedSide: "both",
     weeksSince: 5,
     history: "Unsteady on his feet and tires quickly. Lives alone, with a daughter nearby.",
+    uiProfile: "standard",
   });
   if (!tunde) throw new Error("Could not create Tunde.");
 
   const tundeRules: PractitionerRules = {
-    allowedExerciseIds: ["card_match", "symbol_sort", "arm_raise", "seated_march"],
-    maxLevel: { card_match: 2, symbol_sort: 2, arm_raise: 2, seated_march: 2 },
+    allowedExerciseIds: ["card_match", "symbol_sort", "math_drill", "arm_raise", "diagonal_reach"],
+    maxLevel: { card_match: 2, symbol_sort: 2, math_drill: 1, arm_raise: 2, diagonal_reach: 1 },
     standingAllowed: false,
     contraindications: ["balance", "weight_bearing"],
     maxExercisesPerSet: 3,

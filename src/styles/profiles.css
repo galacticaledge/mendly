@@ -1,0 +1,50 @@
+/* The three versions of the patient interface, keyed off data-profile on
+   ProfileScope. Standard has no rules: it is the design system as drawn.
+   Everything here re-uses existing tokens; no profile adds a value. Styles
+   owned by a component module adapt in that module, with
+   :global([data-profile="..."]). */
+
+/* ---- Both adapted profiles: type steps up one size ---------------------- */
+
+:is([data-profile="aphasia"], [data-profile="motor_visual"]) :is(.body-sm, .caption) {
+  font: var(--text-body);
+}
+:is([data-profile="aphasia"], [data-profile="motor_visual"]) .body { font: var(--text-body-lg); }
+:is([data-profile="aphasia"], [data-profile="motor_visual"]) .label-sm { font: var(--text-label); }
+
+/* ---- Aphasia-friendly: fewer words, more room around each one ----------- */
+
+[data-profile="aphasia"] .rs-activity-row { padding: var(--space-5) 0; }
+[data-profile="aphasia"] .rs-session-card { gap: var(--space-5); }
+
+/* ---- Motor and visual-friendly: bigger targets, stronger contrast ------- */
+
+/* Secondary and tertiary ink read as primary: nothing essential is muted. */
+[data-profile="motor_visual"] {
+  --ink-600: var(--ink-900);
+  --ink-700: var(--ink-900);
+}
+
+/* Every button is a 64px, full-width target: the whole row is the button. */
+[data-profile="motor_visual"] .rs-btn {
+  min-height: var(--space-8);
+  width: 100%;
+}
+
+[data-profile="motor_visual"] :is(.rs-topnav-link, .rs-topnav-mark) { min-height: var(--space-8); }
+
+[data-profile="motor_visual"] .rs-session-card { max-width: none; }
+
+/* Rows further apart, divided by a line that can actually be seen. */
+[data-profile="motor_visual"] .rs-activity-row {
+  padding: var(--space-5) 0;
+  border-bottom-color: var(--border-control);
+}
+
+[data-profile="motor_visual"] .rs-activity-status {
+  width: var(--space-7);
+  height: var(--space-7);
+  min-width: var(--space-7);
+}
+
+[data-profile="motor_visual"] .rs-progress-track { height: var(--space-4); }

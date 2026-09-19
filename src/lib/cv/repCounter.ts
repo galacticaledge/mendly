@@ -46,6 +46,15 @@ export type RepCounterConfig = {
   targetRomDeg: number;
   /** Seconds the end position must be held. 0 means no hold. */
   holdSeconds: number;
+  /**
+   * Degrees either side of the target that still count.
+   *
+   * Unset means "at least the target": more range is never an error, which is
+   * what almost every exercise wants. Set, it turns the target into a band, so
+   * overshooting is as much a miss as falling short — which is the whole point
+   * of a task that asks someone to find a remembered position.
+   */
+  toleranceDeg?: number;
 };
 
 /**
@@ -102,6 +111,21 @@ export class RepCounter {
   private reps: RepMeasurement[] = [];
 
   constructor(private readonly config: RepCounterConfig) {}
+
+  /**
+   * Whether a movement's furthest point counts as reaching the target.
+   *
+   * With a tolerance the target is a band and overshooting misses. Without
+   * one, anything at or past the target counts, allowing for the small lag
+   * that smoothing introduces.
+   */
+  private reachedTarget(peak: number): boolean {
+    const { targetRomDeg, toleranceDeg } = this.config;
+    if (toleranceDeg !== undefined) {
+      return Math.abs(peak - targetRomDeg) <= toleranceDeg;
+    }
+    return peak >= targetRomDeg * VALID_FRACTION;
+  }
 
   private get startThreshold(): number {
     return Math.max(MIN_THRESHOLD_DEG, this.config.targetRomDeg * START_FRACTION);
@@ -236,7 +260,7 @@ export class RepCounter {
       // movement, a full movement nobody could see, and a hold that was never
       // held are different problems, and none of them is a completed rep.
       valid:
-        rom >= this.config.targetRomDeg * VALID_FRACTION &&
+        this.reachedTarget(rom) &&
         this.holdSatisfied &&
         confidence >= MIN_REP_CONFIDENCE &&
         !this.repTainted,

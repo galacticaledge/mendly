@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# except the annotated template, which carries no secrets and is what the
+# README tells you to copy.
+!.env.example
 
 # vercel
 .vercel
@@ -50,3 +53,5 @@ next-env.d.ts
 # Local dev env
 .env
 .env.local
+
+graphify-out

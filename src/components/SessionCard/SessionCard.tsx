@@ -11,6 +11,8 @@ type SessionCardProps = {
   eyebrow: string;
   title: string;
   children: ReactNode;
+  /** Short facts under the description, e.g. duration and exercise count. */
+  meta?: string[];
   /**
    * The card's single action, taken as data so the card can only ever hold one.
    * With an `href` it renders as a link styled as the button, which is what
@@ -25,27 +27,39 @@ type SessionCardProps = {
   };
 };
 
-export function SessionCard({ eyebrow, title, children, action }: SessionCardProps) {
+/**
+ * The one raised panel on a screen: surface-raised, radius-lg and
+ * shadow-resting together, drawn by bundle.css. At most once per screen.
+ */
+export function SessionCard({ eyebrow, title, children, meta, action }: SessionCardProps) {
   const titleId = useId();
   const Icon = action?.icon;
+  const variant = action?.variant ?? "featured";
 
   return (
-    <section className={styles.card} aria-labelledby={titleId}>
+    <section className="rs-session-card" aria-labelledby={titleId}>
       <div className={styles.heading}>
-        <p className={`${styles.eyebrow} caption`}>{eyebrow}</p>
-        <h2 id={titleId} className={`${styles.title} h2`}>
+        <p className={`${styles.eyebrow} body-sm`}>{eyebrow}</p>
+        <h2 id={titleId} className={`${styles.title} h3`}>
           {title}
         </h2>
       </div>
       <div className={styles.body}>{children}</div>
+      {meta && meta.length > 0 && (
+        <p className={`rs-session-meta ${styles.meta} body-sm`}>
+          {meta.map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </p>
+      )}
 
       {action?.href ? (
-        <Link href={action.href} className={`${styles.action} ${styles.link} label`}>
-          {Icon && <Icon size={24} aria-hidden="true" />}
+        <Link href={action.href} className={`rs-btn rs-btn-${variant} ${styles.action} label`}>
+          {Icon && <Icon size={20} aria-hidden="true" />}
           <span>{action.label}</span>
         </Link>
       ) : action ? (
-        <Button variant={action.variant ?? "primary"} icon={action.icon} className={styles.action}>
+        <Button variant={variant} icon={action.icon} className={styles.action}>
           {action.label}
         </Button>
       ) : null}

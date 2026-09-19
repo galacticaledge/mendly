@@ -275,7 +275,7 @@ export function RulesEditor({ patientId, rules: initial, catalog, tagLabels }: R
       )}
 
       <div className={styles.decisions}>
-        <Button variant="primary" onClick={save} disabled={busy}>
+        <Button variant="featured" onClick={save} disabled={busy}>
           {busy ? "Saving" : "Save rules"}
         </Button>
         {saved && <span className={`${styles.muted} body`}>Saved.</span>}

@@ -13,7 +13,9 @@
 
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import { cache } from "react";
 import { cookies } from "next/headers";
+import { getPatient, getPractitioner } from "@/lib/db/queries";
 
 const scryptAsync = promisify(scrypt) as (
   password: string,
@@ -118,11 +120,55 @@ export async function endSession(): Promise<void> {
   store.delete(COOKIE_NAME);
 }
 
-/** The signed-in user, or null. Safe to call from any server component. */
-export async function getSessionUser(): Promise<SessionUser | null> {
-  const store = await cookies();
-  return readToken(store.get(COOKIE_NAME)?.value);
+/**
+ * Drop a cookie naming an account that is not there any more.
+ *
+ * Next only allows a cookie to be written from a server action or a route
+ * handler; from a page render this throws, and there is nothing to be done
+ * about that there. It is a tidy-up, not the fix — the stale cookie is already
+ * being ignored, so the only cost of failing here is one lookup next request.
+ */
+async function forgetStaleCookie(): Promise<void> {
+  try {
+    (await cookies()).delete(COOKIE_NAME);
+  } catch {
+    // Rendering a page rather than handling a request. Deliberately ignored.
+  }
 }
+
+/**
+ * The signed-in user, or null. Safe to call from any server component.
+ *
+ * A valid signature is not proof the account still exists, and the difference
+ * is not theoretical: `./mendly reset` and `npm run db:seed` rebuild the tables
+ * with fresh ids while the browser keeps the cookie it was handed before, so
+ * the token verifies perfectly against a row that is gone. Every guard then
+ * reads "signed in" while every page that needs the row reads "no such
+ * patient", and `/` and `/sign-in` send the person back and forth between each
+ * other until the browser gives up.
+ *
+ * So whether the account exists is part of the answer. A cookie naming an
+ * account that is not there is reported as signed out, because that is what it
+ * is: the person lands on the sign-in form and can sign in again, which is the
+ * one thing the redirect loop never let them do.
+ *
+ * Cached for the length of one request, because the root layout and the page
+ * both ask and the answer cannot change between them.
+ */
+export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+  const store = await cookies();
+  const user = readToken(store.get(COOKIE_NAME)?.value);
+  if (!user) return null;
+
+  const account =
+    user.role === "practitioner"
+      ? await getPractitioner(user.id)
+      : await getPatient(user.id);
+  if (account) return user;
+
+  await forgetStaleCookie();
+  return null;
+});
 
 /** The signed-in user, or a thrown error. For API routes that require one. */
 export async function requireUser(role?: Role): Promise<SessionUser> {

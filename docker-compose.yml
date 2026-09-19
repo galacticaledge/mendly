@@ -30,13 +30,24 @@ services:
   app:
     build:
       context: .
+    # Both files. Compose substitutes ${...} from .env only, so a key set in
+    # .env.local — the file `npm run dev` reads, and the one the README sends
+    # you to — used to reach the dev server and never the container, which
+    # looks exactly like a key that does not work. Reading both means it does
+    # not matter which way you started the app. Neither file is required, and
+    # the later one wins.
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    # These override the files, and have to: compose owns the database
+    # connection here. .env.local points DATABASE_URL at localhost, which
+    # inside the container is the container.
     environment:
       DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
+      DATABASE_SSL: "false"
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
-      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
-      ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
     ports:
       - "${APP_PORT:-3000}:3000"
     depends_on:
@@ -49,9 +60,14 @@ services:
     build:
       context: .
     profiles: ["seed"]
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
     environment:
       DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      DATABASE_SSL: "false"
     command: ["npm", "run", "db:seed"]
     depends_on:
       db:

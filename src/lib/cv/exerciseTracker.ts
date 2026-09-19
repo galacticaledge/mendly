@@ -107,6 +107,7 @@ export class ExerciseTracker {
   private readonly targetReps: number;
   private readonly targetRomDeg: number;
 
+  private readonly minProjectedLimb: number;
   private badFrameSince: number | null = null;
   private invalidSegments = 0;
   private confidenceSamples: number[] = [];
@@ -120,15 +121,18 @@ export class ExerciseTracker {
       reps: number;
       targetRomDeg: number;
       holdSeconds: number;
+      toleranceDeg?: number;
     };
     this.targetReps = rung.reps;
     this.targetRomDeg = rung.targetRomDeg;
+    this.minProjectedLimb = options.exercise.minProjectedLimb ?? MIN_PROJECTED_LIMB;
 
     this.counter = new RepCounter({
       restAngleDeg: options.exercise.restAngleDeg,
       direction: options.exercise.direction,
       targetRomDeg: rung.targetRomDeg,
       holdSeconds: rung.holdSeconds,
+      toleranceDeg: rung.toleranceDeg,
       targetReps: rung.reps,
     });
 
@@ -186,7 +190,7 @@ export class ExerciseTracker {
     );
     if (
       rays !== null &&
-      Math.min(rays.first, rays.second) < MIN_PROJECTED_LIMB
+      Math.min(rays.first, rays.second) < this.minProjectedLimb
     ) {
       return this.handleBadFrame(nowMs, confidence, inFrame, "foreshortened");
     }

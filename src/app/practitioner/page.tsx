@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getSessionUser } from "@/lib/auth/session";
+import { requirePractitioner } from "./guard";
 import { listAlerts, listPatientsForPractitioner, listSetsAwaitingReview } from "@/lib/db/queries";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { relativeDay } from "@/lib/dates";
@@ -17,7 +17,7 @@ export const metadata = { title: "Caseload — Mendly" };
  */
 export default async function CaseloadPage() {
   // The layout has already established this is a practitioner.
-  const user = (await getSessionUser())!;
+  const user = await requirePractitioner();
 
   const [patients, awaiting, openAlerts] = await Promise.all([
     listPatientsForPractitioner(user.id),
@@ -30,7 +30,7 @@ export default async function CaseloadPage() {
   return (
     <main className={styles.main}>
       <header className={styles.head}>
-        <h1 className="h1">Your caseload</h1>
+        <h1 className="display">Your caseload</h1>
         <p className={`${styles.muted} body-lg`}>
           {patients.length} {patients.length === 1 ? "patient" : "patients"}.{" "}
           {awaiting.length > 0
