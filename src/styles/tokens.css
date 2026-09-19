@@ -1,0 +1,82 @@
+/* Mendly design tokens. Generated from the Mendly design system, v2.
+   Every value here is derived in OKLCH: one warm linen neutral spine (hue 88),
+   brand teal (188), clay accent (32), caution ochre (72). Chroma scales with rarity.
+   Do not add a color to this file. If you need one, the design system needs updating first. */
+
+:root {
+  /* ---- Color ---- */
+  --inverse: #FBFAF6;             /* Text and icons on filled brand / accent-deep / caution-deep */
+  --surface-raised: #F6F3EC;      /* The one lifted surface: session card, modals */
+  --surface: #E3DED2;             /* Page background on every screen */
+  --surface-sunken: #D1CCBE;      /* Wells, stripes, disabled fills */
+  --line: #B7B1A2;                /* Decorative hairline only, carries no meaning */
+  --line-strong: #767166;         /* Input borders and any edge that must be perceivable (3:1) */
+  --ink-muted: #59554C;           /* Secondary text, captions, metadata */
+  --ink: #221F19;                 /* Primary text, headings, and the focus ring */
+  --brand-wash: #C3D6CD;          /* Hover/selected rows, progress track, pending marks */
+  --brand: #276762;               /* Nav fill, progress fill, completed marks, headings 24px+ */
+  --brand-deep: #0D4844;          /* Teal that carries text: links, labels, hover on brand fills */
+  --accent-wash: #FBDFD9;         /* Alert banner and alert tag background */
+  --accent: #D05540;              /* Identity clay. FILLS ONLY, carries no text at any size */
+  --accent-deep: #AA3C2A;         /* The one primary CTA per screen, and critical alerts */
+  --accent-press: #892C1C;        /* Hover/pressed for accent-deep fills */
+  --caution-wash: #F8E8D6;        /* Caution banner and caution tag background */
+  --caution-deep: #80571D;        /* Caution text, icons and borders. Attention, not alarm */
+
+  /* ---- Spacing: the only source of gaps, padding and margins ---- */
+  --space-1: 4px;                 /* Icon-to-label gaps */
+  --space-2: 8px;                 /* Caption to heading */
+  --space-3: 12px;                /* Stacked form fields */
+  --space-4: 16px;                /* Default related gap, button padding */
+  --space-5: 24px;                /* Row padding, card title to body */
+  --space-6: 32px;                /* Session card padding, component gaps */
+  --space-7: 48px;                /* Between major page sections */
+  --space-8: 64px;                /* Page margins */
+  --space-9: 96px;                /* Outer whitespace, used once at the extremes */
+
+  /* ---- Radius ---- */
+  --radius-sm: 8px;               /* Inputs, small controls, status tags */
+  --radius-md: 12px;              /* Buttons and rows */
+  --radius-lg: 20px;              /* The session card ONLY */
+  --radius-full: 999px;           /* Progress bar and circles */
+
+  /* ---- Elevation: exactly one shadow exists ---- */
+  --shadow-card: 0 1px 2px rgba(34, 31, 25, 0.06), 0 8px 24px rgba(34, 31, 25, 0.07);
+
+  /* ---- Type ---- */
+  --font-sans: "Libre Franklin", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* ---- Focus: ink ring on a surface offset. The offset always shows the page
+     ground, so the ring is dark-on-light (12.2:1) on ANY surface. ---- */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--ink);
+}
+
+html { background: var(--surface); }
+body { background: var(--surface); color: var(--ink); font-family: var(--font-sans); margin: 0;
+       -webkit-font-smoothing: antialiased; }
+
+*:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ---- Type styles. Apply as classes; do not set font-size ad hoc. ---- */
+/* One welcome line per screen, never a section title */
+.display { font-size: 40px; line-height: 48px; font-weight: 700; letter-spacing: -0.01em; }
+/* Page titles */
+.h1 { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.005em; }
+/* Section headings */
+.h2 { font-size: 21px; line-height: 28px; font-weight: 600; }
+/* Card and row-group titles */
+.h3 { font-size: 17px; line-height: 24px; font-weight: 600; }
+/* Anything read during a session. Prefer this when unsure */
+.body-lg { font-size: 18px; line-height: 28px; font-weight: 400; }
+/* Default paragraph and UI copy */
+.body { font-size: 16px; line-height: 26px; font-weight: 400; }
+/* Secondary text. Pair with ink-muted only */
+.body-sm { font-size: 14px; line-height: 20px; font-weight: 400; }
+/* Button and nav labels */
+.label { font-size: 16px; line-height: 20px; font-weight: 600; letter-spacing: 0.005em; }
+/* Eyebrows, timestamps, metadata */
+.caption { font-size: 13px; line-height: 18px; font-weight: 600; letter-spacing: 0.03em; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
