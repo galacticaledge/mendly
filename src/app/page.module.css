@@ -10,33 +10,49 @@
   gap: var(--space-7);
 }
 
-/* Reading pages keep a 720px measure, left-aligned in the shared column. */
-.main:not(.today) > * { max-width: 720px; }
+/* Reading pages keep a 720px measure, left-aligned in the shared column.
+   Dashboard-style pages (.wide) use the whole column. */
+.main:not(.today, .wide) > * { max-width: 720px; }
 
-/* Today: two columns on a wide screen, the session on the left as the focal
-   point, the week and today's exercises on the right. */
+/* Today: the greeting and the session callout span the page; the week and
+   today's exercises sit side by side under them. .focus and .aside only group
+   the markup, so their children join the grid directly. */
 .today {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-7) var(--space-8);
+  gap: var(--space-7) var(--space-7);
 }
 
 .focus,
-.aside {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
+.aside { display: contents; }
 
-.aside { gap: var(--space-7); }
+.today .greeting,
+.today :global(.rs-session-card) { grid-column: 1 / -1; }
 
-/* The card fills its column so its right edge lines up with everything else. */
-.today :global(.rs-session-card) { max-width: none; }
+.today :global(.rs-session-card) { padding: var(--space-7); }
 
 @media (max-width: 900px) {
   .today { grid-template-columns: minmax(0, 1fr); }
+  .today :global(.rs-session-card) { padding: var(--space-6); }
 }
+
+/* The week, in a callout the colour of the header and nav. A smaller card
+   beside the session panel, so radius-md rather than the panel's radius-lg. */
+.weekCallout {
+  padding: var(--space-6);
+  border-radius: var(--radius-md);
+  background: var(--teal-deep);
+  color: var(--on-teal);
+  box-shadow: var(--shadow-resting);
+}
+
+.weekCallout .heading,
+.weekCallout :global(.rs-progress-label),
+.weekCallout :global(.rs-progress-label) span { color: var(--on-teal); }
+
+.weekCallout :global(.rs-progress-track) { background: rgba(255, 255, 255, 0.22); }
+.weekCallout :global(.rs-progress-fill) { background: var(--off-white); }
 
 .greeting {
   display: flex;
@@ -55,6 +71,18 @@
   color: var(--teal-700);
 }
 
+/* Today's greeting and date: in the nav's deep teal, on the page itself rather
+   than in any callout. Their size comes from the type classes they carry —
+   .display for the greeting, .body-lg for the date — never from here. */
+.today .welcome,
+.date {
+  color: var(--teal-deep);
+}
+
+.date {
+  margin: 0;
+}
+
 .muted {
   color: var(--ink-600);
 }
@@ -65,24 +93,18 @@
   gap: var(--space-5);
 }
 
-.list,
-.days {
+/* A titled group inside a section: an h3 over its content, set off by space. */
+.subsection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+}
+
+.list {
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.days {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.day {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
 }
 
 /* A note from the care team. A label over the text, no box: whitespace

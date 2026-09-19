@@ -2,13 +2,31 @@
    tokens.css and bundle.css are copied verbatim from the Mendly design system
    artifact; do not edit them. Anything the product needs on top goes here. */
 
-/* EXPERIMENT: not in the design system. Kept here, not in tokens.css, so a
-   re-copy of the artifact cannot silently drop it. Only for the active nav tab
-   on teal-900, where it reaches 4.88:1 (coral-500 manages 2.95:1). */
-:root { --coral-300: #ff8a85; }
+/* ---- Visual refresh (UI design specification) --------------------------
+   The spec's palette, on top of tokens.css rather than in it, so a re-copy of
+   the design system artifact cannot drop it.
 
-html { background: var(--canvas); }
-body { background: var(--canvas); color: var(--ink-900); font: var(--text-body); margin: 0;
+   Shape and elevation are NOT aliased here. Every card reads --radius-lg (the
+   one primary panel on a screen), --radius-md (a smaller card or control) and
+   --shadow-resting straight from tokens.css, so there is one place a radius
+   can come from and one shadow in the product. */
+:root {
+  --teal-deep: #2C4A47;   /* Nav, the "Hello" header, the weekly summary callout. */
+  --cream-bg: #E8E3D3;    /* Page background. */
+  --pink-accent: #E8907A; /* Active nav, section titles. */
+  --off-white: #F7F5EE;   /* Card and callout base. */
+  --text-muted: #5C6E6C;  /* Secondary text, nav items at rest. */
+  --green-accent: #5C8A6E;/* History table headers. */
+  --red-alert: #C85A54;   /* A History row where less than half was done. */
+}
+
+/* The session callout is Today's one primary panel, and bundle.css already
+   draws it: surface-raised, radius-lg, shadow-resting. Here it only spans its
+   column instead of holding the system's reading measure. */
+.rs-session-card { max-width: none; }
+
+html { background: var(--cream-bg); }
+body { background: var(--cream-bg); color: var(--ink-900); font: var(--text-body); margin: 0;
        -webkit-font-smoothing: antialiased; }
 
 /* The focus ring on every focusable element, not only those carrying

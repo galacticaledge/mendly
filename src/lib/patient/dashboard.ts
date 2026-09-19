@@ -6,9 +6,9 @@ import {
   getOpenSession,
   getPatient,
   listAlertsForPatient,
+  listCompletedSessionsThisWeek,
   listRecentResults,
   listResultsForSession,
-  weekSummary,
 } from "@/lib/db/queries";
 import { buildPlan, totalMinutes } from "@/lib/session/plan";
 import type { PlannedExercise } from "@/lib/session/plan";
@@ -39,6 +39,12 @@ export type PatientDashboard = {
   sessionsThisWeek: number;
   sessionsCompletedAllTime: number;
   lastResults: { exerciseId: string; name: string; line: string; at: Date }[];
+  /**
+   * Sessions finished this week, newest first. `note` is the care team's note
+   * on the set the session came from, given only on the newest session from
+   * each set so the same note is not repeated row after row.
+   */
+  finishedThisWeek: { id: string; dayLabel: string; exercises: number; note: string }[];
 };
 
 const DAY_MS = 864e5;
@@ -76,23 +82,36 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
     };
   }
 
+  const finished = await listCompletedSessionsThisWeek(patientId);
+
   // Seven days ending today, so "your week" is a rolling week rather than one
-  // that resets on a Monday and makes Sunday look empty.
-  const days = await weekSummary(patientId);
-  const doneByDay = new Map(
-    days.map((row) => [new Date(row.day).toDateString(), row.completed > 0]),
-  );
+  // that resets on a Monday and makes Sunday look empty. Days are bucketed
+  // here, in the same timezone as the labels, not by date_trunc in the
+  // database, which works in UTC and can move a session onto the wrong day.
+  const doneDays = new Set(finished.map((row) => new Date(row.started_at).toDateString()));
   const now = new Date();
   const week = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(now.getTime() - (6 - i) * DAY_MS);
     return {
       label: date.toLocaleDateString("en-GB", { weekday: "long" }),
-      done: doneByDay.get(date.toDateString()) ?? false,
+      done: doneDays.has(date.toDateString()),
       isToday: i === 6,
     };
   });
 
   const recent = await listRecentResults(patientId, 6);
+
+  const noted = new Set<string>();
+  const finishedThisWeek = finished.map((row) => {
+    const first = !noted.has(row.exercise_set_id);
+    noted.add(row.exercise_set_id);
+    return {
+      id: row.id,
+      dayLabel: label(new Date(row.started_at)),
+      exercises: row.exercises,
+      note: first ? row.practitioner_notes.trim() : "",
+    };
+  });
 
   return {
     firstName: patient.first_name,
@@ -108,6 +127,7 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
       line: resultLine(row.payload),
       at: row.time,
     })),
+    finishedThisWeek,
   };
 }
 

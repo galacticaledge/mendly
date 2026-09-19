@@ -1,0 +1,87 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ---- Search field ------------------------------------------------------- */
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--teal-deep);
+}
+
+.searchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* A control, so its edge is border-control and its radius is radius-md. It is
+   not its own card, so it casts no shadow. */
+.searchInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-5) var(--space-3) calc(var(--space-4) + 28px);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-900);
+  transition: border-color 160ms ease;
+}
+
+.searchInput::placeholder { color: var(--text-muted); }
+
+.searchInput:hover,
+.searchInput:focus-visible {
+  border-color: var(--teal-900);
+}
+
+/* ---- The list ----------------------------------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each person is a smaller card that is its own surface: surface-raised,
+   radius-md, shadow-resting. Everything it holds is always visible. */
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-resting);
+}
+
+.name {
+  margin: 0;
+  color: var(--teal-900);
+}
+
+.item p { margin: 0; color: var(--ink-900); }
+
+.email {
+  color: var(--teal-900);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Motor and visual-friendly: a 64px search target. */
+:global([data-profile="motor_visual"]) .searchInput { min-height: var(--space-8); }

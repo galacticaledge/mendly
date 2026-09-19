@@ -51,7 +51,10 @@ export function TopNav({ items, activeHref, icons = false }: TopNavProps) {
                     aria-current={active ? "page" : undefined}
                   >
                     {Icon && <Icon size={24} aria-hidden="true" />}
-                    {item.label}
+                    {/* data-text reserves the bold width, so hovering does not shift the row. */}
+                    <span className={styles.text} data-text={item.label}>
+                      {item.label}
+                    </span>
                   </Link>
                 </li>
               );

@@ -369,16 +369,26 @@ export async function countCompletedSessions(patientId: string): Promise<number>
 }
 
 /**
- * Sessions over the last seven days, one row per calendar day, so the patient
- * dashboard can answer "how is my week going" without pulling every session.
+ * Sessions finished in the last seven days, newest first, each with how many
+ * exercises it recorded and the note the practitioner left on the set it came
+ * from. Feeds "what you have done this week" on the patient dashboard.
  */
-export function weekSummary(patientId: string) {
-  return query<{ day: Date; completed: number }>(
-    `SELECT date_trunc('day', started_at) AS day,
-            count(*) FILTER (WHERE status = 'completed')::int AS completed
-     FROM sessions
-     WHERE patient_id = $1 AND started_at > now() - interval '7 days'
-     GROUP BY 1 ORDER BY 1`,
+export function listCompletedSessionsThisWeek(patientId: string) {
+  return query<{
+    id: string;
+    exercise_set_id: string;
+    started_at: Date;
+    exercises: number;
+    practitioner_notes: string;
+  }>(
+    `SELECT s.id, s.exercise_set_id, s.started_at,
+            (SELECT count(*)::int FROM exercise_results r WHERE r.session_id = s.id) AS exercises,
+            es.practitioner_notes
+     FROM sessions s
+     JOIN exercise_sets es ON es.id = s.exercise_set_id
+     WHERE s.patient_id = $1 AND s.status = 'completed'
+       AND s.started_at > now() - interval '7 days'
+     ORDER BY s.started_at DESC`,
     [patientId],
   );
 }
