@@ -166,14 +166,23 @@ export function MotorExercise({
         });
       }
 
-      if (stageRef.current === "setup") {
+      if (stageRef.current === "setup" || stageRef.current === "ready") {
         const checker = checkerRef.current;
         checker.update(frame);
+
         if (checker.sampleCount >= SETUP_FRAMES) {
           const assessment = checker.result();
           setSetupAdvice(assessment.advice);
-          if (assessment.feasible) setStage("ready");
+
+          if (stageRef.current === "setup" && assessment.feasible) {
+            setStage("ready");
+          }
+
+          if (stageRef.current === "ready" && !assessment.feasible) {
+            setStage("setup");
+          }
         }
+
         return;
       }
 
