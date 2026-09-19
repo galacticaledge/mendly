@@ -39,6 +39,30 @@ export default async function Dashboard() {
   const remaining = today?.plan.filter((item) => !isDone(item.exercise.id)) ?? [];
   const aphasia = data.uiProfile === "aphasia";
 
+  /**
+   * An approved set that builds no plan at all.
+   *
+   * The plan is built by resolving each approved exercise against the catalog,
+   * and an id the catalog no longer knows is dropped. A set approved before an
+   * exercise was renamed therefore survives as an approved set with nothing in
+   * it — and the session, asked to run it, has nothing to run. There is no
+   * point offering that session, so the action is shown and greyed rather than
+   * leading somewhere that can only say the same thing back.
+   */
+  const nothingToRun = today !== null && today.plan.length === 0;
+
+  /**
+   * Every exercise done, but the session not closed.
+   *
+   * Only reachable while a session is open, because what counts as done is the
+   * results recorded against that session. So this is not "nothing left to do":
+   * the closing questions are still waiting, and the action has to stay live to
+   * reach them.
+   */
+  const onlyQuestionsLeft = today !== null && today.plan.length > 0 && remaining.length === 0;
+
+  const count = (n: number) => `${n} ${n === 1 ? "exercise" : "exercises"}`;
+
   return (
     <main className={`${styles.main} ${styles.today}`}>
       <div className={styles.focus}>
@@ -50,25 +74,59 @@ export default async function Dashboard() {
         {/* 1. What should I do today */}
         {today ? (
           <SessionCard
-            eyebrow={today.sessionId ? "Carry on where you stopped" : "Today's session"}
+            eyebrow={
+              nothingToRun
+                ? "Today's session"
+                : today.sessionId
+                  ? "Carry on where you stopped"
+                  : "Today's session"
+            }
             title={
-              remaining.length === today.plan.length
-                ? `${today.plan.length} exercises`
-                : `${remaining.length} exercises left`
+              nothingToRun
+                ? aphasia
+                  ? "Nothing today"
+                  : "Nothing to do today"
+                : onlyQuestionsLeft
+                  ? `${count(today.plan.length)} done`
+                  : remaining.length === today.plan.length
+                    ? count(today.plan.length)
+                    : `${count(remaining.length)} left`
             }
             action={{
-              label: today.sessionId ? "Carry on" : "Start session",
+              label: nothingToRun
+                ? "Start session"
+                : onlyQuestionsLeft
+                  ? "Finish your session"
+                  : today.sessionId
+                    ? "Carry on"
+                    : "Start session",
               icon: aphasia ? Play : ArrowRight,
               href: "/session",
+              disabled: nothingToRun,
             }}
             meta={
-              aphasia
-                ? [`${today.minutes} minutes`, `${done.length} of ${today.plan.length} done`]
-                : [`About ${today.minutes} minutes`, `${done.length} of ${today.plan.length} exercises done`]
+              nothingToRun
+                ? undefined
+                : aphasia
+                  ? [`${today.minutes} minutes`, `${done.length} of ${today.plan.length} done`]
+                  : [
+                      `About ${today.minutes} minutes`,
+                      `${done.length} of ${today.plan.length} exercises done`,
+                    ]
             }
           >
             <p className={`${styles.text} body-lg`}>
-              {aphasia ? "Stop any time." : "You can stop at any point."}
+              {nothingToRun
+                ? aphasia
+                  ? "Your care team will add exercises."
+                  : "Your care team has not approved anything you can do yet. It will appear here when they do."
+                : onlyQuestionsLeft
+                  ? aphasia
+                    ? "A few questions left."
+                    : "That is all the exercises. A few short questions and you are finished."
+                  : aphasia
+                    ? "Stop any time."
+                    : "You can stop at any point."}
             </p>
             {today.notes && (
               <p className={`${styles.note} body-lg`}>

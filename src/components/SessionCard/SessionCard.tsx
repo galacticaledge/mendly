@@ -24,6 +24,17 @@ type SessionCardProps = {
     icon?: LucideIcon;
     variant?: ButtonVariant;
     href?: string;
+    /**
+     * Shown, but not available yet.
+     *
+     * Rendered as a disabled button even when an `href` is given, because
+     * there is no such thing as a disabled link: one styled to look unavailable
+     * still follows on a click, on Enter, and on a middle-click into a new tab.
+     * Keeping the action visible rather than removing it says what the screen
+     * would offer if there were anything to do, which is the more useful thing
+     * to tell someone who came here to exercise.
+     */
+    disabled?: boolean;
   };
 };
 
@@ -53,13 +64,18 @@ export function SessionCard({ eyebrow, title, children, meta, action }: SessionC
         </p>
       )}
 
-      {action?.href ? (
+      {action?.href && !action.disabled ? (
         <Link href={action.href} className={`rs-btn rs-btn-${variant} ${styles.action} label`}>
           {Icon && <Icon size={20} aria-hidden="true" />}
           <span>{action.label}</span>
         </Link>
       ) : action ? (
-        <Button variant={variant} icon={action.icon} className={styles.action}>
+        <Button
+          variant={variant}
+          icon={action.icon}
+          disabled={action.disabled}
+          className={styles.action}
+        >
           {action.label}
         </Button>
       ) : null}

@@ -26,6 +26,24 @@ export default async function SessionPage() {
   // one. With nothing approved there is nothing to do but go back.
   if (!set?.approved_exercises) redirect("/");
 
+  // Built before a session row is opened, because a set that resolves to
+  // nothing must not leave an in-progress session behind on its way out.
+  //
+  // An id the catalog no longer knows is dropped by buildPlan, so an otherwise
+  // valid approved set can come through with no exercises in it. Greying the
+  // dashboard action covers the way most people arrive; this covers a bookmark,
+  // the back button and a typed URL. It is logged because it means a
+  // practitioner approved something the patient cannot be given, and nobody
+  // would otherwise find out.
+  const plan = buildPlan(set.approved_exercises);
+  if (plan.length === 0) {
+    console.warn(
+      `[mendly] set ${set.id} is approved with ${set.approved_exercises.length} exercise(s), ` +
+        `none of which are in the catalog. There is nothing to run.`,
+    );
+    redirect("/");
+  }
+
   const open = (await getOpenSession(user.id)) ?? (await startSessionRow(user.id, set.id));
   if (!open) redirect("/");
 
@@ -34,7 +52,7 @@ export default async function SessionPage() {
   return (
     <SessionRunner
       sessionId={open.id}
-      plan={buildPlan(set.approved_exercises)}
+      plan={plan}
       completedExerciseIds={completed}
       affectedSide={patient.affected_side}
       firstName={patient.first_name}
