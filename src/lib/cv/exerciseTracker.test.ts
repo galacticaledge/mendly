@@ -11,6 +11,7 @@ import { test } from "node:test";
 import type { MotorExercise, PoseFrame } from "@/lib/contracts";
 import { requireExercise } from "@/lib/exercises/catalog";
 import { ExerciseTracker } from "@/lib/cv/exerciseTracker";
+import { readPoseObservation } from "@/lib/cv/inference";
 
 /**
  * A body whose shoulder angle is `degrees`.
@@ -81,6 +82,57 @@ function armRaiseTracker() {
     affectedSide: "left",
   });
 }
+
+function failedInference(): PoseFrame {
+  return readPoseObservation(() => { throw new Error("Inference failed"); }).frame;
+}
+
+test("brief inference loss preserves measurements without inventing a repetition", () => {
+  const tracker = armRaiseTracker();
+  let t = feed(tracker, [15, ...sweep(80), 15, 15]);
+  const before = tracker.finish();
+  assert.equal(before.valid_reps, 1);
+  tracker.update(failedInference(), t);
+  tracker.update(failedInference(), t + 200);
+  assert.deepEqual(tracker.finish(), before);
+  t = feed(tracker, [15, ...sweep(80), 15, 15], t + 300);
+  assert.equal(tracker.finish().valid_reps, 2);
+  assert.deepEqual(tracker.finish().reps[0], before.reps[0]);
+  assert.equal(tracker.update(shoulderAt(15), t).trackingValid, true);
+});
+
+test("prolonged inference loss warns, abandons the attempt and recovers after rest", () => {
+  const tracker = armRaiseTracker();
+  const t = feed(tracker, [15, 15, 30, 45, 60, 80, 80]);
+  tracker.update(failedInference(), t);
+  const warning = tracker.update(failedInference(), t + 700);
+  assert.equal(warning.trackingValid, false);
+  assert.match(String(warning.guidance), /picture/);
+  const paused = tracker.update(failedInference(), t + 3000);
+  assert.equal(paused.phase, "waiting");
+  assert.match(String(paused.guidance), /paused/);
+  assert.equal(tracker.finish().reps.length, 0);
+  assert.equal(tracker.finish().invalid_segments, 1);
+  const recoveredAt = feed(tracker, [80, 80, 15, 15, 15, 15, 15, 15], t + 3100);
+  assert.equal(tracker.finish().reps.length, 0);
+  feed(tracker, [15, ...sweep(80), 15, 15], recoveredAt);
+  assert.equal(tracker.finish().valid_reps, 1);
+});
+
+test("a failed observation during a movement does not enter its angle or confidence metrics", () => {
+  const tracker = armRaiseTracker();
+  const control = armRaiseTracker();
+  let t = 0;
+  for (const angle of [15, 15, ...sweep(80), 15, 15]) {
+    tracker.update(shoulderAt(angle), t);
+    control.update(shoulderAt(angle), t);
+    // Only the tracker sees the failed inference between good observations.
+    if (t === 198) tracker.update(failedInference(), t + 10);
+    t += 33;
+  }
+  assert.equal(tracker.finish().valid_reps, 1);
+  assert.deepEqual(tracker.finish(), control.finish());
+});
 
 test("the count never runs past what the level asked for", () => {
   const tracker = armRaiseTracker();

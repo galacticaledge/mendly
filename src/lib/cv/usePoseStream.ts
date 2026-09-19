@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PoseLandmarker, NormalizedLandmark } from "@mediapipe/tasks-vision";
 import type { PoseFrame } from "@/lib/contracts";
-import { toPoseFrame } from "@/lib/cv/landmarks";
+import { readPoseObservation } from "@/lib/cv/inference";
 
 export type PoseStreamStatus =
   | "idle"
@@ -164,14 +164,10 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
           }
           lastTimestampRef.current = timestamp;
 
-          try {
-            const result = currentLandmarker.detectForVideo(currentVideo, timestamp);
-            const raw = result.landmarks?.[0] ?? [];
-            onFrameRef.current(toPoseFrame(raw), timestamp, raw);
-          } catch {
-            // A dropped frame is not worth ending a session over; the tracker
-            // treats the gap as lost tracking, which is the honest reading.
-          }
+          const observation = readPoseObservation(() =>
+            currentLandmarker.detectForVideo(currentVideo, timestamp),
+          );
+          onFrameRef.current(observation.frame, timestamp, observation.raw);
 
           rafRef.current = requestAnimationFrame(tick);
         };
