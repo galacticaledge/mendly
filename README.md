@@ -43,7 +43,7 @@ Without Docker:
 
 ```sh
 npm install
-cp .env.example .env.local     # point DATABASE_URL at a PostgreSQL instance
+cp .env.example .env.local     # see Environment variables below
 npm run cv:assets              # copy the MediaPipe runtime and pose model into public/
 npm run db:seed                # applies the schema, then loads the demo data
 npm run dev
@@ -58,17 +58,74 @@ npm run dev
 | Patient      | rosa@example.com      | `mendly123` | Six weeks of history                 |
 | Patient      | tunde@example.com     | `mendly123` | An open urgent alert                 |
 
-### Optional keys
+## Environment variables
 
-Both are optional, and the product is fully usable without either.
+`.env.example` is the annotated master list; copy it and fill in what you need.
+**Which file you copy it to depends on how you are running the app**, because
+two different things read these variables:
 
-- `BACKBOARD_API_KEY` — the LLM service, routed to Gemini. Without it, sets are
-  drafted by the local rules engine, which is deterministic and needs no
-  network. Run `npm run ai:models` to see which Gemini identifiers your account
-  can reach before setting `BACKBOARD_MODEL`.
-- `ELEVENLABS_API_KEY` — the spoken prompts. Without it, the browser's own
-  speech synthesis is used, so hands-free operation still works with a plainer
-  voice.
+| Running with | Copy to | Read by |
+|---|---|---|
+| `./mendly up` / `docker compose` | `.env` | Docker Compose, which substitutes the values into `docker-compose.yml` |
+| `npm run dev` | `.env.local` | Next.js directly |
+
+Next.js loads both `.env` and `.env.local`, with `.env.local` winning, so a
+single `.env` covers both cases if you prefer. Docker Compose only reads `.env`
+— values in `.env.local` never reach the container.
+
+Neither file is committed. Only `DATABASE_URL` is genuinely required, and the
+product is fully usable with no API keys at all.
+
+### The database and the session cookie
+
+| Variable | Default | What it does |
+|---|---|---|
+| `DATABASE_URL` | none — **required** | PostgreSQL connection string. Compose sets this for you; outside Docker, point it at your own instance. The app refuses to start without it. |
+| `DATABASE_SSL` | `false` | Set to `true` for a managed instance that terminates TLS with its own CA, such as TigerData or DigitalOcean. |
+| `SESSION_SECRET` | a fixed development key | Signs the session cookie. In development it falls back to a known key so sessions survive a dev-server restart; **in production the app throws on startup unless you set it.** |
+
+### Planner keys
+
+Optional. Without `BACKBOARD_API_KEY`, exercise sets are drafted by the local
+rules engine, which is deterministic and needs no network.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `BACKBOARD_API_KEY` | unset | Enables the LLM planner. |
+| `BACKBOARD_MODEL` | `gemini-2.5-flash` | Which model Backboard routes to. Run `npm run ai:models` to list what your account can actually reach before changing it. |
+| `BACKBOARD_LLM_PROVIDER` | `google` | The provider behind Backboard. |
+| `BACKBOARD_MEMORY` | `Auto` | `Auto` lets Backboard remember a patient across sessions. `off` disables that retention, at the cost of the planner starting cold every time. See *Honest limitations* — this one is a data-residency decision, not just a config value. |
+| `BACKBOARD_TIMEOUT_MS` | `30000` | How long to wait before treating a call as an outage and falling back to the rules engine. |
+| `BACKBOARD_API_URL` | `https://app.backboard.io/api/threads/messages` | Override only if you are pointing at a different Backboard deployment. |
+
+### Voice keys
+
+Optional. Without `ELEVENLABS_API_KEY`, the browser's own speech synthesis is
+used, so hands-free operation still works with a plainer voice.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `ELEVENLABS_API_KEY` | unset | Enables ElevenLabs speech. |
+| `ELEVENLABS_VOICE_ID` | `21m00Tcm4TlvDq8ikWAM` | Which voice speaks. Under Docker, set this explicitly whenever you set an API key: Compose passes an empty string through when it is unset, which is not the same as unset and defeats the default above. |
+| `ELEVENLABS_MODEL_ID` | `eleven_flash_v2_5` | The speech model. |
+
+### Docker Compose only
+
+These are read by `docker-compose.yml` rather than by the app, so they do
+nothing under `npm run dev`.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `POSTGRES_PASSWORD` | `mendly` | The database password. Compose builds `DATABASE_URL` from it, so changing it is enough — do not also set `DATABASE_URL`. |
+| `DB_PORT` | `5432` | Host port for the database. Change it if a PostgreSQL installed on the machine is already holding 5432. |
+| `APP_PORT` | `3000` | Host port for the app. |
+
+Compose forwards only the variables named in `docker-compose.yml`:
+`SESSION_SECRET`, `BACKBOARD_API_KEY`, `BACKBOARD_LLM_PROVIDER`,
+`BACKBOARD_MODEL`, `BACKBOARD_MEMORY`, `ELEVENLABS_API_KEY` and
+`ELEVENLABS_VOICE_ID`. The rest of the table above — `DATABASE_SSL`,
+`BACKBOARD_TIMEOUT_MS`, `BACKBOARD_API_URL`, `ELEVENLABS_MODEL_ID` — takes
+effect outside Docker only, or once you add it to the `app` service yourself.
 
 ## The planner
 
