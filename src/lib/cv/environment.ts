@@ -1,0 +1,161 @@
+/**
+ * The setup check.
+ *
+ * Before a standing exercise, the camera has to be able to see the whole body:
+ * a full-body exercise measured from a chest-up view produces numbers that look
+ * fine and mean nothing. This samples a couple of seconds of frames and reports
+ * whether the required view actually holds.
+ *
+ * This is a feasibility signal about the camera setup. It says the movement can
+ * be measured here, not that it is safe for this person to do — that judgement
+ * belongs to the practitioner, and it is why standing needs their permission in
+ * the rules as well as passing this check (docs/06).
+ */
+
+import type {
+  BodyView,
+  EnvironmentAssessment,
+  PoseFrame,
+  PoseLandmarkName,
+} from "@/lib/contracts";
+import { isInFrame, isVisible } from "@/lib/cv/landmarks";
+
+/** What each view needs to see. */
+const REQUIRED: Record<BodyView, PoseLandmarkName[]> = {
+  // Shoulders-up is enough for cognitive work and seated arm exercises.
+  upper: ["nose", "left_shoulder", "right_shoulder"],
+  // A standing exercise needs the legs, or there is nothing to measure.
+  full: [
+    "left_shoulder",
+    "right_shoulder",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle",
+  ],
+};
+
+/** Fraction of sampled frames that must satisfy the view. */
+const PASS_FRACTION = 0.8;
+
+const SAMPLE_WINDOW = 60;
+
+type EnvironmentSample = {
+  passed: boolean;
+  missedLegs: boolean;
+  outOfFrame: boolean;
+};
+
+export class EnvironmentChecker {
+  private readonly samples: EnvironmentSample[] = [];
+  private readonly required: PoseLandmarkName[];
+
+  /**
+   * @param view     how much of the body the exercise needs in shot
+   * @param measured the landmarks this exercise actually measures
+   *
+   * Both matter, and checking only the first was a real bug: the "upper" view
+   * is the head and shoulders, so a seated arm exercise could pass the setup
+   * check with the arm entirely out of frame, tell the patient the camera was
+   * ready, and then fail to track anything. The check now has to see what is
+   * about to be measured.
+   */
+  constructor(
+    private readonly view: BodyView,
+    measured: PoseLandmarkName[] = [],
+    private readonly cameraAngle: "front" | "side" = "front",
+  ) {
+    // Face-on, the generic view requirements are a fair check: both shoulders
+    // and the face should be visible. Side-on they are not — the far shoulder
+    // is behind the near one and the face is in profile — so demanding them
+    // would fail the check forever and the exercise could never start. What
+    // still has to hold, and is the part that matters, is that the landmarks
+    // being measured can be seen.
+    this.required =
+      cameraAngle === "side"
+        ? [...new Set(measured)]
+        : [...new Set([...REQUIRED[view], ...measured])];
+  }
+
+  /** Feed a frame. Call for about two seconds before reading the result. */
+  update(frame: PoseFrame): void {
+    const required = this.required;
+
+    const allVisible = required.every((name) => isVisible(frame[name]));
+
+    const allInFrame = required.every((name) => {
+      const landmark = frame[name];
+      return landmark !== undefined && isInFrame(landmark);
+    });
+
+    const passed = allVisible && allInFrame;
+
+    const legsGone = [
+      "left_knee",
+      "right_knee",
+      "left_ankle",
+      "right_ankle",
+    ].some((name) => !isVisible(frame[name as PoseLandmarkName]));
+
+    this.samples.push({
+      passed,
+      missedLegs: !passed && legsGone,
+      outOfFrame: !passed && !legsGone && !allInFrame,
+    });
+
+    if (this.samples.length > SAMPLE_WINDOW) {
+      this.samples.shift();
+    }
+  }
+
+  get sampleCount(): number {
+    return this.samples.length;
+  }
+
+  result(): EnvironmentAssessment {
+    const total = this.samples.length;
+    const passed = this.samples.filter((sample) => sample.passed).length;
+    const missedLegs = this.samples.filter(
+      (sample) => sample.missedLegs,
+    ).length;
+    const outOfFrame = this.samples.filter(
+      (sample) => sample.outOfFrame,
+    ).length;
+
+    const confidence = total === 0 ? 0 : passed / total;
+    const feasible = confidence >= PASS_FRACTION;
+
+    let advice: string | null = null;
+    if (!feasible) {
+      if (this.view === "full" && missedLegs >= outOfFrame) {
+        advice =
+          "Move the camera back, or set it further away, so your legs and feet are in the picture.";
+      } else if (outOfFrame > 0) {
+        advice =
+          this.view === "full"
+            ? "Move so your whole body is inside the picture."
+            : "Move so your head, shoulders and the arm you are using are all in the picture.";
+      } else if (this.cameraAngle === "side") {
+        advice =
+          "Turn so your side faces the camera, and make sure the arm or leg you are moving is in the picture.";
+      } else {
+        advice =
+          "The camera cannot see you clearly. Try turning on a light or facing the camera.";
+      }
+    }
+
+    return {
+      view: this.view,
+      feasible,
+      confidence: Math.round(confidence * 100) / 100,
+      advice,
+    };
+  }
+}
+
+/** The view an exercise needs, for callers that only have the posture. */
+export function viewForPosture(posture: "seated" | "standing"): BodyView {
+  return posture === "standing" ? "full" : "upper";
+}

@@ -1,0 +1,122 @@
+/* Restore — generated from tokens.json */
+:root, [data-theme="light"] {
+  --canvas: #dfddd0; /* Page background — the warm off-white foundation. Nearly everything sits directly on this; it is the default, not an accent. */
+  --surface-raised: #f7f5ef; /* Background for the one primary contained panel on a screen (e.g. today's session) and for form fields. Reserve it — most content sits straight on canvas, not inside a raised surface. */
+  --surface-white: #ffffff; /* Rare maximum-contrast surface — a photo frame, a modal overlay. Not a default background anywhere. */
+  --ink-900: #211f1a; /* Primary text — headings and body copy on canvas, surface-raised or surface-white. */
+  --ink-700: #413e36; /* Secondary text — supporting copy and descriptions on canvas or surface-raised. */
+  --ink-600: #5a564b; /* Tertiary text — captions, timestamps, meta labels on canvas or surface-raised. */
+  --ink-400: #8c8776; /* Disabled text and placeholder hints only. Falls below body-text contrast by design — WCAG exempts disabled controls — so never use it for content a person needs to read. */
+  --border-divider: #cfcaba; /* Decorative hairline between rows or sections (e.g. between activity rows). Carries no meaning on its own, so it is not held to a contrast minimum — never use it for a functional control border. */
+  --border-control: #7a7563; /* Functional border for inputs, secondary buttons, checkboxes and other interactive controls. Meets 3:1 against canvas, surface-raised and white. */
+  --teal-900: #1e4142; /* Deepest teal — the top navigation background, and teal text set at body size on canvas or surface-raised (meets 4.5:1 where teal-700 alone would not). */
+  --teal-700: #326c6d; /* The brand teal. Standard primary button fills, headings and icons 24px or larger, and any large teal fill. At body text size on a light background, use teal-900 instead — teal-700 alone only reaches 4.4:1 there. */
+  --teal-600: #3d8182; /* Hover and pressed state for teal-700 fills. */
+  --teal-100: #e3eded; /* Pale teal tint — encouraging/positive alert backgrounds, a selected navigation item, subtle section tinting. Use sparingly, as a moment, not a default panel color. */
+  --on-teal: #ffffff; /* Text and icons set on a teal-700 or teal-900 fill. */
+  --coral-600: #d23f3c; /* The featured-action color — the single highest-priority button on a screen (e.g. ‘Start today's session’) and urgent alert actions. White text meets 4.5:1 on this fill. Use at most once per screen; it loses its meaning the moment two things on the same screen compete for it. */
+  --coral-500: #eb4946; /* The exact brand coral. Reserved for large marks only — icons 24px and up, a thin progress accent, a small decorative status dot. Never as a background carrying body-size text — it falls to 3.8:1 with white text, below the text minimum. */
+  --coral-100: #fbe4e3; /* Pale coral tint for an attention/reminder alert background. Pair with coral-700 text or icons. This is the loudest surface in the system — use it only when something genuinely needs the person's attention. */
+  --coral-700: #a62f2c; /* Coral set as text or an icon directly on canvas, surface-raised or white — alert copy, a coral text link. Meets 4.5:1 on all three. */
+  --focus-ring: #211f1a; /* 3px solid outline, offset 2px from the control, drawn against the page rather than against the control's own fill. Applied to every focusable element — restyle it if you must, but never remove it, and keep it ≥3:1 on whatever sits behind it. */
+  --shadow-resting: 0 1px 2px rgba(33,31,26,0.06), 0 1px 1px rgba(33,31,26,0.04); /* The single primary contained panel and the top navigation bar only. Most of the interface carries no shadow at all. */
+  --shadow-raised: 0 8px 24px rgba(33,31,26,0.12); /* Transient overlays only — a confirmation toast or dialog floating above the page. */
+}
+:root {
+  --space-1: 4px; /* Icon-to-label gap, tight inline spacing. */
+  --space-2: 8px; /* Gap between closely related elements, e.g. a label and its helper text. */
+  --space-3: 12px; /* Internal padding for small controls — tags, compact buttons. */
+  --space-4: 16px; /* Default control padding; gap between form fields. */
+  --space-5: 24px; /* Default gap between distinct elements, e.g. rows in a list. */
+  --space-6: 32px; /* Internal padding for the primary contained panel; gap between related groups. */
+  --space-7: 48px; /* Space between major sections on a page. */
+  --space-8: 64px; /* Page top margin below the navigation; hero spacing. */
+  --space-9: 96px; /* Generous top-level rhythm for the calmest, least busy views. */
+  --radius-sm: 6px; /* Tags, small controls, input fields. */
+  --radius-md: 10px; /* Buttons and list-row hover states. */
+  --radius-lg: 18px; /* The one primary contained panel on a screen, e.g. today's session. */
+  --radius-full: 999px; /* Pill shapes — the progress bar track and fill, an avatar, a status dot. */
+  --font-sans: "Public Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-times-new-roman: 'Times New Roman', sans-serif;
+  --text-display: 600 40px/48px var(--font-poppins); /* The welcoming header on the dashboard, e.g. ‘Good morning, Alex.’ Once per screen, at most. */
+  --text-h1: 600 32px/40px var(--font-times-new-roman); /* Page titles. */
+  --text-h2: 600 24px/32px var(--font-poppins); /* Section titles, e.g. ‘Today's session’, ‘Recent activity’. */
+  --text-h3: 600 20px/28px var(--font-poppins); /* Card and subsection titles, e.g. an exercise name. */
+  --text-body-lg: 400 18px/28px var(--font-poppins); /* Primary reading copy — exercise instructions, session descriptions. The default size for anything a person must read carefully. */
+  --text-body: 400 16px/24px var(--font-poppins); /* Default interface text — labels, descriptions, list content. Never go smaller than this for anything essential. */
+  --text-body-sm: 400 14px/20px var(--font-poppins); /* Secondary or meta text — durations, dates, counts — always paired with a body or body-lg element, never standing alone as the only text in a row. */
+  --text-caption: 400 13px/18px var(--font-poppins); /* Timestamps and fine print only. The smallest size in the system; never used for anything a person needs to act on. */
+  --text-label: 600 16px/20px var(--font-poppins); /* Button text and primary navigation items. */
+  --text-label-sm: 600 14px/18px var(--font-poppins); /* Secondary controls and tags. */
+}
+.display {
+  font-family: var(--font-poppins);
+  font-size: 40px;
+  line-height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.h1 {
+  font-family: var(--font-times-new-roman);
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.h2 {
+  font-family: var(--font-poppins);
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.h3 {
+  font-family: var(--font-poppins);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.body-lg {
+  font-family: var(--font-poppins);
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.body {
+  font-family: var(--font-poppins);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.body-sm {
+  font-family: var(--font-poppins);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.caption {
+  font-family: var(--font-poppins);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.label {
+  font-family: var(--font-poppins);
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.label-sm {
+  font-family: var(--font-poppins);
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+}

@@ -1,0 +1,40 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* Four tones. The word and the icon's shape carry the status; colour only
+   supports it. The system has two hue families, so caution and neutral are both
+   drawn in ink and told apart by their word, their icon and their edge. */
+.positive {
+  background: var(--teal-100);
+  border-color: var(--teal-900);
+  color: var(--teal-900);
+}
+
+.alert {
+  background: var(--coral-100);
+  border-color: var(--coral-700);
+  color: var(--coral-700);
+}
+
+.caution {
+  background: transparent;
+  border-color: var(--ink-900);
+  color: var(--ink-900);
+}
+
+.neutral {
+  background: transparent;
+  border-color: var(--border-control);
+  color: var(--ink-700);
+}

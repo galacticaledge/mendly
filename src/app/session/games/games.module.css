@@ -1,0 +1,116 @@
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: stretch;
+}
+
+.prompt { margin: 0; color: var(--ink-900); }
+
+/* ---- Card pairs ---- */
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 4), 1fr);
+  gap: var(--space-3);
+}
+
+.card {
+  min-height: 96px;
+  padding: var(--space-3);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--border-divider);
+  color: var(--ink-900);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.card:hover:not(:disabled) { background: var(--teal-100); }
+.cardUp { background: var(--surface-raised); }
+/* A found pair is marked by the word staying visible and the fill changing;
+   the word is what carries the state. */
+.cardMatched { background: var(--teal-100); border-color: var(--teal-900); cursor: default; }
+
+/* ---- Odd one out ---- */
+
+.symbolRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.symbol {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.symbol:hover { background: var(--teal-100); }
+
+/* ---- Word list ---- */
+
+.wordList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+  padding: var(--space-6);
+  list-style: none;
+  background: var(--surface-raised);
+  border-radius: var(--radius-md);
+}
+
+.word { color: var(--ink-900); }
+
+.wordChoices { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.wordChoice {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.wordChoice:hover { background: var(--teal-100); }
+.wordChosen { background: var(--teal-700); border-color: var(--teal-900); color: var(--on-teal); }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .wordChoice { min-height: var(--space-8); }
+
+/* ---- Number work ---- */
+
+.sum {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-900);
+}
+
+.answer {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 72px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--border-control);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink-900);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.answer:hover { background: var(--teal-100); }
+
+:global([data-profile="motor_visual"]) .answer { min-height: var(--space-8); }

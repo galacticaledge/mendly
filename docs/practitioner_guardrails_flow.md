@@ -1,0 +1,154 @@
+# Practitioner-Guarded Adaptive Rehabilitation Flow
+
+## Context
+
+The rehabilitation platform is designed around an adaptive loop:
+
+Patient → Performance Measurement → Adaptive Next Exercise
+
+The key requirement is to preserve this adaptive behavior while ensuring that AI does not freely determine a patient's rehabilitation plan.
+
+Because rehabilitation exercises should be individualized to the patient, the practitioner must define the boundaries within which the AI is allowed to operate.
+
+## Core Principle
+
+The practitioner defines the rehabilitation boundaries.
+
+AI proposes and adapts exercises within those boundaries.
+
+The practitioner reviews and approves each new exercise set.
+
+The AI should not independently create or prescribe an unrestricted rehabilitation plan.
+
+## Proposed Flow
+
+### 1. Practitioner Intake
+
+The practitioner provides the information needed to personalize rehabilitation, including:
+
+- Patient history
+- Rehabilitation goals
+- Relevant limitations or considerations
+- Previous performance/history
+- Allowed cognitive and/or motor exercises
+- Exercise-specific rules and constraints
+
+These rules can be represented through something such as `rule.md`.
+
+### 2. AI Proposes an Exercise Set
+
+The AI uses:
+
+- Patient history
+- Rehabilitation goals
+- Previous performance
+- Practitioner-provided exercise pool
+- Practitioner-defined rules and constraints
+
+The AI proposes an exercise set appropriate for the patient.
+
+### 3. Practitioner Review
+
+Before the exercise set is given to the patient, the practitioner can:
+
+- Approve the set
+- Edit the proposed exercises
+- Reject the proposal
+- Modify the constraints if needed
+
+This creates a safety and personalization guardrail around AI-generated exercise sets.
+
+### 4. Patient Performs the Approved Set
+
+The patient completes the practitioner-approved exercise set.
+
+During the session, the system measures performance.
+
+For motor rehabilitation, this may include metrics such as:
+
+- Range of motion
+- Repetitions
+- Movement consistency
+- Movement speed
+- Compensation
+- Tracking confidence
+
+For cognitive rehabilitation, this may include:
+
+- Accuracy
+- Reaction time
+- Errors
+- Attempts
+- Hints used
+
+### 5. Adaptive Next Exercise
+
+The original adaptive loop remains active.
+
+Performance metrics are analyzed after an exercise, and the AI can determine the next exercise and/or difficulty level.
+
+However, the AI must stay within:
+
+- The practitioner-approved exercise pool
+- The practitioner-defined rules
+- Patient-specific constraints
+
+The AI is therefore adapting the session without freely prescribing outside the approved rehabilitation boundaries.
+
+### 6. Next Exercise Set
+
+After the current exercise set is completed, the AI uses:
+
+- Newly measured performance
+- Previous session/history data
+- Patient goals
+- Practitioner rules
+- Previously approved exercise boundaries
+
+to propose the next exercise set.
+
+The practitioner reviews this new set again before it is given to the patient.
+
+## Overall Loop
+
+Practitioner defines patient-specific boundaries
+↓
+AI proposes exercise set
+↓
+Practitioner approves / edits / rejects
+↓
+Patient performs approved exercises
+↓
+System measures performance
+↓
+AI adapts the next exercise within approved rules
+↓
+Exercise set completes
+↓
+AI proposes next exercise set using new performance + history
+↓
+Practitioner reviews again
+↓
+Repeat
+
+## Design Goal
+
+The system should preserve both sides of the original concept:
+
+1. Adaptive rehabilitation:
+   The AI responds dynamically to the patient's measured performance during a session.
+
+2. Practitioner oversight:
+   The AI does not independently determine the patient's unrestricted rehabilitation plan.
+
+The intended principle is:
+
+"Practitioner defines the boundaries → AI proposes → Practitioner approves → AI adapts within those boundaries → Practitioner reviews the next set."
+
+## Important Constraint
+
+The AI should not be described as freely prescribing medical treatment.
+
+A more accurate description is:
+
+"Within practitioner-approved exercises and predefined rehabilitation rules, the AI adaptively selects the next exercise and difficulty based on the patient's measured performance."

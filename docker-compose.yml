@@ -1,0 +1,78 @@
+# The whole platform, locally.
+#
+#   docker compose up                    app + database
+#   docker compose --profile seed up     the same, plus demo data
+#
+# `./mendly up --seed` is a thin wrapper over the second form, for the `--seed`
+# parameter described in the product notes.
+
+services:
+  db:
+    # TigerData's TimescaleDB image: PostgreSQL with the hypertable extension
+    # already installed, which is what the results and alerts tables use.
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_USER: mendly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mendly}
+      POSTGRES_DB: mendly
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - mendly-data:/var/lib/postgresql/data
+    healthcheck:
+      # The app and the seed job both wait on this, so neither starts against a
+      # database that is still coming up.
+      test: ["CMD-SHELL", "pg_isready -U mendly -d mendly"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+    # Both files. Compose substitutes ${...} from .env only, so a key set in
+    # .env.local — the file `npm run dev` reads, and the one the README sends
+    # you to — used to reach the dev server and never the container, which
+    # looks exactly like a key that does not work. Reading both means it does
+    # not matter which way you started the app. Neither file is required, and
+    # the later one wins.
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    # These override the files, and have to: compose owns the database
+    # connection here. .env.local points DATABASE_URL at localhost, which
+    # inside the container is the container.
+    environment:
+      DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
+      DATABASE_SSL: "false"
+      SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Runs once and exits. Only started when the `seed` profile is active, so
+  # `docker compose up` never overwrites a database you have been using.
+  seed:
+    build:
+      context: .
+    profiles: ["seed"]
+    env_file:
+      - path: .env
+        required: false
+      - path: .env.local
+        required: false
+    environment:
+      DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
+      DATABASE_SSL: "false"
+    command: ["npm", "run", "db:seed"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  mendly-data:

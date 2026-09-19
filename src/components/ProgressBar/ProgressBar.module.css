@@ -1,0 +1,8 @@
+.header {
+  align-items: baseline;
+  gap: var(--space-4);
+}
+
+.value {
+  color: var(--ink-700);
+}

@@ -1,0 +1,29 @@
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.eyebrow,
+.title {
+  margin: 0;
+}
+
+.eyebrow {
+  color: var(--teal-900);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.meta {
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.action {
+  align-self: flex-start;
+}
