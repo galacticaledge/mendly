@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation";
 import { ArrowRight, Play } from "lucide-react";
 import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
-import { ProfileScope } from "@/components/ProfileScope/ProfileScope";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { SessionCard } from "@/components/SessionCard/SessionCard";
-import { TopNav } from "@/components/TopNav/TopNav";
 import { getSessionUser } from "@/lib/auth/session";
 import { loadDashboard } from "@/lib/patient/dashboard";
 import { requireExercise } from "@/lib/exercises/catalog";
-import { PATIENT_NAV } from "@/lib/nav";
 import { Landing } from "./Landing";
 import styles from "./page.module.css";
 
@@ -42,95 +39,91 @@ export default async function Dashboard() {
   const aphasia = data.uiProfile === "aphasia";
 
   return (
-    <ProfileScope profile={data.uiProfile}>
-      <TopNav items={PATIENT_NAV} activeHref="/" icons={aphasia} wide />
-
-      <main className={`${styles.main} ${styles.today}`}>
-        <div className={styles.focus}>
-          <div className={styles.greeting}>
-            <h1 className={`${styles.welcome} display`}>Hello, {data.firstName}</h1>
-            <p className={`${styles.muted} body-lg`}>{data.dateLabel}</p>
-          </div>
-
-          {/* 1. What should I do today */}
-          {today ? (
-            <SessionCard
-              eyebrow={today.sessionId ? "Carry on where you stopped" : "Today's session"}
-              title={
-                remaining.length === today.plan.length
-                  ? `${today.plan.length} exercises`
-                  : `${remaining.length} exercises left`
-              }
-              action={{
-                label: today.sessionId ? "Carry on" : "Start session",
-                icon: aphasia ? Play : ArrowRight,
-                href: "/session",
-              }}
-              meta={
-                aphasia
-                  ? [`${today.minutes} minutes`, `${done.length} of ${today.plan.length} done`]
-                  : [`About ${today.minutes} minutes`, `${done.length} of ${today.plan.length} exercises done`]
-              }
-            >
-              <p className={`${styles.text} body-lg`}>
-                {aphasia ? "Stop any time." : "You can stop at any point."}
-              </p>
-              {today.notes && (
-                <p className={`${styles.note} body-lg`}>
-                  <span className="label">From your care team</span>
-                  {today.notes}
-                </p>
-              )}
-            </SessionCard>
-          ) : (
-            <SessionCard eyebrow="Today's session" title={aphasia ? "Nothing today" : "Nothing to do yet"}>
-              <p className={`${styles.text} body-lg`}>
-                {aphasia
-                  ? "Your care team will add exercises."
-                  : "Your care team has not approved your next set of exercises. They will appear here when they do."}
-              </p>
-            </SessionCard>
-          )}
+    <main className={`${styles.main} ${styles.today}`}>
+      <div className={styles.focus}>
+        <div className={styles.greeting}>
+          <h1 className={`${styles.welcome} display`}>Hello, {data.firstName}</h1>
+          <p className={`${styles.muted} body-lg`}>{data.dateLabel}</p>
         </div>
 
-        <div className={styles.aside}>
-          {/* 2. How is my week going */}
-          <section className={styles.section} aria-labelledby="week-heading">
-            <h2 id="week-heading" className={`${styles.heading} h2`}>
-              Your week
+        {/* 1. What should I do today */}
+        {today ? (
+          <SessionCard
+            eyebrow={today.sessionId ? "Carry on where you stopped" : "Today's session"}
+            title={
+              remaining.length === today.plan.length
+                ? `${today.plan.length} exercises`
+                : `${remaining.length} exercises left`
+            }
+            action={{
+              label: today.sessionId ? "Carry on" : "Start session",
+              icon: aphasia ? Play : ArrowRight,
+              href: "/session",
+            }}
+            meta={
+              aphasia
+                ? [`${today.minutes} minutes`, `${done.length} of ${today.plan.length} done`]
+                : [`About ${today.minutes} minutes`, `${done.length} of ${today.plan.length} exercises done`]
+            }
+          >
+            <p className={`${styles.text} body-lg`}>
+              {aphasia ? "Stop any time." : "You can stop at any point."}
+            </p>
+            {today.notes && (
+              <p className={`${styles.note} body-lg`}>
+                <span className="label">From your care team</span>
+                {today.notes}
+              </p>
+            )}
+          </SessionCard>
+        ) : (
+          <SessionCard eyebrow="Today's session" title={aphasia ? "Nothing today" : "Nothing to do yet"}>
+            <p className={`${styles.text} body-lg`}>
+              {aphasia
+                ? "Your care team will add exercises."
+                : "Your care team has not approved your next set of exercises. They will appear here when they do."}
+            </p>
+          </SessionCard>
+        )}
+      </div>
+
+      <div className={styles.aside}>
+        {/* 2. How is my week going */}
+        <section className={styles.section} aria-labelledby="week-heading">
+          <h2 id="week-heading" className={`${styles.heading} h2`}>
+            Your week
+          </h2>
+          <ProgressBar
+            label="Sessions this week"
+            value={data.sessionsThisWeek}
+            max={7}
+            valueText={`${data.sessionsThisWeek} of 7 done`}
+          />
+        </section>
+
+        {/* 3 and 4. What I have done and what is next, as one ordered list */}
+        {today && today.plan.length > 0 && (
+          <section className={styles.section} aria-labelledby="exercises-heading">
+            <h2 id="exercises-heading" className={`${styles.heading} h2`}>
+              Today&apos;s exercises
             </h2>
-            <ProgressBar
-              label="Sessions this week"
-              value={data.sessionsThisWeek}
-              max={7}
-              valueText={`${data.sessionsThisWeek} of 7 done`}
-            />
+            <ol className={`rs-activity-list ${styles.list}`}>
+              {today.plan.map((item) => {
+                const complete = isDone(item.exercise.id);
+                return (
+                  <ActivityRow
+                    key={item.exercise.id}
+                    title={item.exercise.name}
+                    status={`${describe(item.exercise.id, item.level, aphasia)} · ${complete ? "Done" : "To do"}`}
+                    done={complete}
+                  />
+                );
+              })}
+            </ol>
           </section>
-
-          {/* 3 and 4. What I have done and what is next, as one ordered list */}
-          {today && today.plan.length > 0 && (
-            <section className={styles.section} aria-labelledby="exercises-heading">
-              <h2 id="exercises-heading" className={`${styles.heading} h2`}>
-                Today&apos;s exercises
-              </h2>
-              <ol className={`rs-activity-list ${styles.list}`}>
-                {today.plan.map((item) => {
-                  const complete = isDone(item.exercise.id);
-                  return (
-                    <ActivityRow
-                      key={item.exercise.id}
-                      title={item.exercise.name}
-                      status={`${describe(item.exercise.id, item.level, aphasia)} · ${complete ? "Done" : "To do"}`}
-                      done={complete}
-                    />
-                  );
-                })}
-              </ol>
-            </section>
-          )}
-        </div>
-      </main>
-    </ProfileScope>
+        )}
+      </div>
+    </main>
   );
 }
 

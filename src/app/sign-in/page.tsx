@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
+import { Wordmark } from "@/components/Wordmark/Wordmark";
 import { SignInForm } from "./SignInForm";
 import styles from "./signIn.module.css";
 
@@ -19,8 +20,8 @@ export default async function SignInPage() {
   return (
     <div className={styles.split}>
       <section className={styles.brand} aria-label="Mendly" data-ground="teal">
-        <Link href="/" className={`${styles.wordmark} display`}>
-          Mendly
+        <Link href="/" className={styles.wordmark}>
+          <Wordmark size="lg" />
         </Link>
         <p className={`${styles.tagline} h2`}>Recovery, mended to you.</p>
         <p className={`${styles.about} body-lg`}>

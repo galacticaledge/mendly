@@ -48,7 +48,7 @@ Apply the type classes from `tokens.css` (`.display`, `.h1`, `.h2`, `.h3`, `.bod
 
 ## Layout
 
-Single column wherever possible, `max-width` around 720px for reading content. Today is the exception: 1080px, two columns (session on the left, week and today's exercises on the right) so all four answers sit above the fold, stacking below 900px. Spacing is the structuring device: reach for a larger `space-*` step before a border, a tint or a container. `--space-7`/`--space-8` between sections. Do not turn every piece of information into a card. No cards nested in cards, no card grids, no colored left borders.
+Every page sits in the same 1080px column, centered, with the same top padding, and the nav's inner column matches it, so nothing moves sideways between routes. Reading content inside it keeps a 720px measure, left-aligned. Today is the exception: it fills the column with two columns (session on the left, week and today's exercises on the right) so all four answers sit above the fold, stacking below 900px. Spacing is the structuring device: reach for a larger `space-*` step before a border, a tint or a container. `--space-7`/`--space-8` between sections. Do not turn every piece of information into a card. No cards nested in cards, no card grids, no colored left borders.
 
 ## Motion
 
@@ -65,7 +65,7 @@ The system defines six components (`Button`, `TopNav`, `ProgressBar`, `SessionCa
 | Component | Notes |
 |---|---|
 | `Button` | `rs-btn-featured` (coral, one per screen, ever), `rs-btn-primary` (teal, the ordinary action), `rs-btn-secondary` (outlined), `rs-btn-text` (lowest emphasis). |
-| `TopNav` | `rs-topnav` on `teal-900`, max five items, same order and place on every screen. Active item is marked with an `on-teal` underline, not the system's `coral-500`, so the featured action stays the only coral. |
+| `TopNav` | `rs-topnav` on `teal-900`, max five items. Rendered once, in the root layout (via `AppNav`, which picks the items and active tab from the path); never in a page. Its row never wraps. Active item is marked with an `on-teal` underline, not the system's `coral-500`, so the featured action stays the only coral. |
 | `SessionCard` | `rs-session-card`: the one raised panel. Eyebrow `body-sm` `teal-900`, title `h3`, description `body-lg`, one action. Accepts `action.href`, rendering the action as a link styled as the button, so a server-rendered card can start a flow. |
 | `ActivityRow` | `rs-activity-row`. Rows, never a grid of cards. Filled teal circle with a tick when done, empty ring when pending; the status line says the state in words. |
 | `ProgressBar` | `rs-progress`. One teal fill on one track, always with a count in words. At most one per screen. |
@@ -84,7 +84,7 @@ Do not add components speculatively. No Toast, Avatar, Tabs, Modal, Skeleton or 
 
 ## Interface profiles
 
-Each patient account has a `ui_profile` (`patients.ui_profile`): `standard`, `aphasia` or `motor_visual`. Every patient page wraps itself, nav included, in `ProfileScope`, which sets `data-profile`. One set of components serves all three; never fork a component per profile.
+Each patient account has a `ui_profile` (`patients.ui_profile`): `standard`, `aphasia` or `motor_visual`. The root layout wraps a signed-in patient's whole app, nav included, in `ProfileScope`, which sets `data-profile`; pages do not wrap themselves. One set of components serves all three; never fork a component per profile.
 
 - `standard` is the design system as drawn. It has no rules.
 - `aphasia`: type one step up, more room between sections, an icon beside nav labels and section headings, and shorter copy (numbers, not clauses). Copy changes live in the page, keyed off the profile.
@@ -94,7 +94,7 @@ Global adaptations are in `src/styles/profiles.css`. Styles owned by a component
 
 ## The practitioner side
 
-Everything under `/practitioner` is a working tool rather than a calm surface: someone scanning a caseload between appointments needs density the patient app deliberately refuses. It is wider (1080px, with `TopNav wide`), uses tables, and puts several things on a screen. It uses the same tokens throughout, and the rules that exist for access rather than for calm (48px targets, focus rings, status never by color alone) apply there unchanged.
+Everything under `/practitioner` is a working tool rather than a calm surface: someone scanning a caseload between appointments needs density the patient app deliberately refuses. It uses tables, and puts several things on a screen. It uses the same tokens throughout, and the rules that exist for access rather than for calm (48px targets, focus rings, status never by color alone) apply there unchanged.
 
 ## Routes
 

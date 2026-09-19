@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import todayScreen from "../../public/landing/today.png";
+import { Wordmark } from "@/components/Wordmark/Wordmark";
 import styles from "./landing.module.css";
 
 const STEPS = [
@@ -36,8 +37,8 @@ export function Landing() {
   return (
     <>
       <header className={styles.nav}>
-        <Link href="/" className={`${styles.wordmark} h3`}>
-          Mendly
+        <Link href="/" className={styles.wordmark}>
+          <Wordmark size="md" />
         </Link>
         <Link href="/sign-in" className="rs-btn rs-btn-text label">
           Sign in
@@ -115,7 +116,9 @@ export function Landing() {
       </main>
 
       <footer className={styles.footer}>
-        <span className={`${styles.footerMark} label`}>Mendly</span>
+        <span className={styles.footerMark}>
+          <Wordmark />
+        </span>
         <span className="body">Recovery, mended to you.</span>
       </footer>
     </>

@@ -2,6 +2,11 @@
    tokens.css and bundle.css are copied verbatim from the Mendly design system
    artifact; do not edit them. Anything the product needs on top goes here. */
 
+/* EXPERIMENT: not in the design system. Kept here, not in tokens.css, so a
+   re-copy of the artifact cannot silently drop it. Only for the active nav tab
+   on teal-900, where it reaches 4.88:1 (coral-500 manages 2.95:1). */
+:root { --coral-300: #ff8a85; }
+
 html { background: var(--canvas); }
 body { background: var(--canvas); color: var(--ink-900); font: var(--text-body); margin: 0;
        -webkit-font-smoothing: antialiased; }
