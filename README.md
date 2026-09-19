@@ -84,6 +84,12 @@ product is fully usable with no API keys at all.
 | `DATABASE_SSL` | `false` | Set to `true` for a managed instance that terminates TLS with its own CA, such as TigerData or DigitalOcean. |
 | `SESSION_SECRET` | a fixed development key | Signs the session cookie. In development it falls back to a known key so sessions survive a dev-server restart; **in production the app throws on startup unless you set it.** |
 
+Changing `SESSION_SECRET` invalidates every session cookie already issued, so
+everyone is signed out on the next request. That is the intended behaviour and
+it is handled cleanly: a cookie that no longer verifies, one that has expired,
+and one naming an account that a reseed has since replaced are all reported as
+signed out, and the person lands on the sign-in form.
+
 ### Planner keys
 
 Optional. Without `BACKBOARD_API_KEY`, exercise sets are drafted by the local

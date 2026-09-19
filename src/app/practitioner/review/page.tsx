@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { getSessionUser } from "@/lib/auth/session";
+import { requirePractitioner } from "../guard";
 import { listSetsAwaitingReview } from "@/lib/db/queries";
 import { getExercise } from "@/lib/exercises/catalog";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
@@ -14,7 +14,7 @@ export const metadata = { title: "To review — Mendly" };
  * its own.
  */
 export default async function ReviewQueuePage() {
-  const user = (await getSessionUser())!;
+  const user = await requirePractitioner();
   const sets = await listSetsAwaitingReview(user.id);
 
   return (

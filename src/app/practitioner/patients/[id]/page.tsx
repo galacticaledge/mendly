@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getSessionUser } from "@/lib/auth/session";
+import { requirePractitioner } from "../../guard";
 import type { ExerciseTag, Level } from "@/lib/contracts";
 import { isMotor } from "@/lib/contracts";
 import {
@@ -28,7 +28,7 @@ import styles from "./patient.module.css";
  * rules that bound everything the AI is allowed to propose.
  */
 export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = (await getSessionUser())!;
+  const user = await requirePractitioner();
   const { id } = await params;
 
   if (!(await practitionerOwnsPatient(user.id, id))) notFound();

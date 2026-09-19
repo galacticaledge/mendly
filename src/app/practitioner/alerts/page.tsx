@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/lib/auth/session";
+import { requirePractitioner } from "../guard";
 import { listAlerts } from "@/lib/db/queries";
 import { AlertFeed } from "./AlertFeed";
 import styles from "../practitioner.module.css";
@@ -6,7 +6,7 @@ import styles from "../practitioner.module.css";
 export const metadata = { title: "Alerts — Mendly" };
 
 export default async function AlertsPage() {
-  const user = (await getSessionUser())!;
+  const user = await requirePractitioner();
   const alerts = await listAlerts(user.id, { limit: 50 });
 
   return (
