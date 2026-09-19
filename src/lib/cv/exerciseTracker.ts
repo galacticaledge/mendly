@@ -339,7 +339,7 @@ export class ExerciseTracker {
     const reliable = reps.filter(
       (rep) => rep.tracking_confidence >= RELIABLE_CONFIDENCE,
     );
-    const measured = reliable.length > 0 ? reliable : reps;
+    const measured = reliable;
     const roms = measured.map((rep) => rep.rom_deg);
     const validReps = this.counter.validRepCount;
 

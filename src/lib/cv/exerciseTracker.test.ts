@@ -217,3 +217,32 @@ test("a limb pointing at the camera is reported as untracked, not measured", () 
   assert.equal(last.validReps, 0, "and must not produce repetitions");
   assert.match(String(last.guidance), /side/i);
 });
+
+test("unreliable repetitions do not contribute to ROM statistics", () => {
+  const tracker = armRaiseTracker();
+  let t = 0;
+
+  const lowConfidenceFrame = (angle: number): PoseFrame => {
+    const frame = shoulderAt(angle);
+
+    return {
+      ...frame,
+      left_hip: { ...frame.left_hip!, visibility: 0.55 },
+      left_shoulder: { ...frame.left_shoulder!, visibility: 0.55 },
+      left_elbow: { ...frame.left_elbow!, visibility: 0.55 },
+    };
+  };
+
+  for (const angle of [15, 15, ...sweep(80), 15, 15]) {
+    tracker.update(lowConfidenceFrame(angle), t);
+    t += 33;
+  }
+
+  const result = tracker.finish();
+
+  assert.equal(result.valid_reps, 0);
+  assert.equal(result.reps.length, 1);
+  assert.equal(result.rom_mean_deg, 0);
+  assert.equal(result.rom_min_deg, 0);
+  assert.equal(result.rom_max_deg, 0);
+});
