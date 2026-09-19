@@ -26,7 +26,12 @@ import type {
 } from "@/lib/contracts";
 import { getLevel } from "@/lib/exercises/catalog";
 import { angleFromFrame, rayLengths } from "@/lib/cv/angles";
-import { frameConfidence, frameIsValid, isInFrame, mirrorLandmark } from "@/lib/cv/landmarks";
+import {
+  frameConfidence,
+  frameIsValid,
+  isInFrame,
+  mirrorLandmark,
+} from "@/lib/cv/landmarks";
 import { ExponentialSmoother, mean } from "@/lib/cv/smoothing";
 import { RepCounter } from "@/lib/cv/repCounter";
 
@@ -67,7 +72,8 @@ export function resolveJoint(
   affectedSide: "left" | "right" | "both",
 ): JointSpec {
   const { joint, side } = exercise;
-  const shouldMirror = (side === "mirror" && affectedSide === "right") || side === "right";
+  const shouldMirror =
+    (side === "mirror" && affectedSide === "right") || side === "right";
 
   if (!shouldMirror) return joint;
   return {
@@ -146,7 +152,7 @@ export class ExerciseTracker {
   /**
    * Feed one frame. Returns what the patient's screen should show right now.
    */
-  update(frame: PoseFrame, nowMs: number): LiveTrackingState {
+  update(frame: PoseFrame, nowMs: number, aspectRatio = 1): LiveTrackingState {
     if (this.startedAt === null) this.startedAt = nowMs;
 
     const joint = this.resolveJoint();
@@ -171,12 +177,27 @@ export class ExerciseTracker {
     // This is checked before the dropout timer is cleared below. Clearing it
     // first would restart the timer on every foreshortened frame, so tracking
     // would keep reporting itself valid however long the arm stayed end on.
-    const rays = rayLengths(frame, joint.from, joint.vertex, joint.to);
-    if (rays !== null && Math.min(rays.first, rays.second) < MIN_PROJECTED_LIMB) {
+    const rays = rayLengths(
+      frame,
+      joint.from,
+      joint.vertex,
+      joint.to,
+      aspectRatio,
+    );
+    if (
+      rays !== null &&
+      Math.min(rays.first, rays.second) < MIN_PROJECTED_LIMB
+    ) {
       return this.handleBadFrame(nowMs, confidence, inFrame, "foreshortened");
     }
 
-    const raw = angleFromFrame(frame, joint.from, joint.vertex, joint.to);
+    const raw = angleFromFrame(
+      frame,
+      joint.from,
+      joint.vertex,
+      joint.to,
+      aspectRatio,
+    );
     if (raw === null) return this.handleBadFrame(nowMs, confidence, inFrame);
 
     // Good frame. Clear any warning state and measure.
@@ -211,7 +232,8 @@ export class ExerciseTracker {
   private coachingLine(phase: string, progress: number): string | null {
     if (phase === "holding") return "Hold it there.";
     if (phase === "returning") return "Now come back down slowly.";
-    if (phase === "rising" && progress > this.targetRomDeg * 0.8) return "Almost there.";
+    if (phase === "rising" && progress > this.targetRomDeg * 0.8)
+      return "Almost there.";
 
     if (phase === "waiting") {
       // Nothing can be counted until the joint has been seen at rest, so say
@@ -220,7 +242,8 @@ export class ExerciseTracker {
       if (this.lastRepCounted === false) {
         return "That one did not quite reach far enough. Try to go a little further.";
       }
-      if (this.counter.completedReps.length === 0) return "Start when you are ready.";
+      if (this.counter.completedReps.length === 0)
+        return "Start when you are ready.";
     }
     return null;
   }
@@ -263,13 +286,17 @@ export class ExerciseTracker {
       // somewhere else entirely, and averaging across the gap would drag the
       // first good frames back towards a position that no longer exists.
       this.smoother.reset();
-      guidance = "Tracking is paused. Get back into the picture and it will pick up again.";
+      guidance =
+        "Tracking is paused. Get back into the picture and it will pick up again.";
     }
 
     this.lastGuidance = guidance;
 
     return {
-      angleDeg: this.smoother.current === null ? null : Math.round(this.smoother.current),
+      angleDeg:
+        this.smoother.current === null
+          ? null
+          : Math.round(this.smoother.current),
       reps: this.counter.completedReps.length,
       validReps: this.counter.validRepCount,
       targetReps: this.targetReps,
@@ -309,8 +336,10 @@ export class ExerciseTracker {
    */
   finish(status: MotorResult["status"] = "completed"): MotorResult {
     const reps = this.counter.completedReps;
-    const reliable = reps.filter((rep) => rep.tracking_confidence >= RELIABLE_CONFIDENCE);
-    const measured = reliable.length > 0 ? reliable : reps;
+    const reliable = reps.filter(
+      (rep) => rep.tracking_confidence >= RELIABLE_CONFIDENCE,
+    );
+    const measured = reliable;
     const roms = measured.map((rep) => rep.rom_deg);
     const validReps = this.counter.validRepCount;
 
@@ -318,7 +347,8 @@ export class ExerciseTracker {
 
     // If nothing at all could be measured, say so rather than reporting a
     // clean set of zeroes that reads like a patient who did not move.
-    const trackingFailed = reps.length === 0 && overallConfidence < RELIABLE_CONFIDENCE;
+    const trackingFailed =
+      reps.length === 0 && overallConfidence < RELIABLE_CONFIDENCE;
 
     return {
       modality: "motor",

@@ -15,9 +15,12 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PoseLandmarker, NormalizedLandmark } from "@mediapipe/tasks-vision";
+import type {
+  PoseLandmarker,
+  NormalizedLandmark,
+} from "@mediapipe/tasks-vision";
 import type { PoseFrame } from "@/lib/contracts";
-import { toPoseFrame } from "@/lib/cv/landmarks";
+import { readPoseObservation } from "@/lib/cv/inference";
 
 export type PoseStreamStatus =
   | "idle"
@@ -29,14 +32,20 @@ export type PoseStreamStatus =
 
 export type PoseStreamOptions = {
   /** Called for every processed frame, with landmarks and a timestamp in ms. */
-  onFrame: (frame: PoseFrame, timestampMs: number, raw: NormalizedLandmark[]) => void;
+  onFrame: (
+    frame: PoseFrame,
+    timestampMs: number,
+    raw: NormalizedLandmark[],
+    aspectRatio: number,
+  ) => void;
   /** Nothing starts until this is true, so a page can mount before the camera. */
   enabled: boolean;
 };
 
 /** Where the wasm runtime lives when it has been copied into public/. */
 const LOCAL_WASM = "/mediapipe/wasm";
-const CDN_WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
+const CDN_WASM =
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const LOCAL_MODEL = "/models/pose_landmarker_lite.task";
 const CDN_MODEL =
   "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
@@ -100,7 +109,11 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
         const stream = await navigator.mediaDevices.getUserMedia({
           // 640x480 is plenty for pose landmarks and keeps the per-frame cost
           // low enough to hold 30fps on a laptop without a discrete GPU.
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: "user",
+          },
           audio: false,
         });
         if (cancelled) {
@@ -118,13 +131,12 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
 
         // Imported here rather than at module scope: the bundle is large and
         // touches browser globals, so it must not be pulled into a server render.
-        const { FilesetResolver, PoseLandmarker: Landmarker } = await import(
-          "@mediapipe/tasks-vision"
-        );
+        const { FilesetResolver, PoseLandmarker: Landmarker } =
+          await import("@mediapipe/tasks-vision");
 
         const [wasmPath, modelPath] = await Promise.all([
-          resolveAsset(`${LOCAL_WASM}/vision_wasm_internal.js`, CDN_WASM).then((resolved) =>
-            resolved === CDN_WASM ? CDN_WASM : LOCAL_WASM,
+          resolveAsset(`${LOCAL_WASM}/vision_wasm_internal.js`, CDN_WASM).then(
+            (resolved) => (resolved === CDN_WASM ? CDN_WASM : LOCAL_WASM),
           ),
           resolveAsset(LOCAL_MODEL, CDN_MODEL),
         ]);
@@ -151,7 +163,11 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
           const currentVideo = videoRef.current;
           const currentLandmarker = landmarkerRef.current;
 
-          if (!currentVideo || !currentLandmarker || currentVideo.readyState < 2) {
+          if (
+            !currentVideo ||
+            !currentLandmarker ||
+            currentVideo.readyState < 2
+          ) {
             rafRef.current = requestAnimationFrame(tick);
             return;
           }
@@ -164,14 +180,19 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
           }
           lastTimestampRef.current = timestamp;
 
-          try {
-            const result = currentLandmarker.detectForVideo(currentVideo, timestamp);
-            const raw = result.landmarks?.[0] ?? [];
-            onFrameRef.current(toPoseFrame(raw), timestamp, raw);
-          } catch {
-            // A dropped frame is not worth ending a session over; the tracker
-            // treats the gap as lost tracking, which is the honest reading.
-          }
+          const observation = readPoseObservation(() =>
+            currentLandmarker.detectForVideo(currentVideo, timestamp),
+          );
+          const aspectRatio =
+            currentVideo.videoHeight > 0
+              ? currentVideo.videoWidth / currentVideo.videoHeight
+              : 1;
+          onFrameRef.current(
+            observation.frame,
+            timestamp,
+            observation.raw,
+            aspectRatio,
+          );
 
           rafRef.current = requestAnimationFrame(tick);
         };
@@ -179,10 +200,12 @@ export function usePoseStream({ onFrame, enabled }: PoseStreamOptions) {
         rafRef.current = requestAnimationFrame(tick);
       } catch (caught) {
         if (cancelled) return;
-        const message = caught instanceof Error ? caught.message : String(caught);
+        const message =
+          caught instanceof Error ? caught.message : String(caught);
         const denied =
           caught instanceof DOMException &&
-          (caught.name === "NotAllowedError" || caught.name === "PermissionDeniedError");
+          (caught.name === "NotAllowedError" ||
+            caught.name === "PermissionDeniedError");
         setError(
           denied
             ? "Mendly needs the camera to watch your movement. You can turn it on in your browser settings."

@@ -14,6 +14,7 @@
  * the watcher keeps running even when the tracker has given up on a repetition.
  */
 
+import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Video } from "lucide-react";
 import type {
@@ -24,7 +25,10 @@ import type {
   Level,
 } from "@/lib/contracts";
 import { getLevel } from "@/lib/exercises/catalog";
-import { ExerciseTracker, requiredLandmarksFor } from "@/lib/cv/exerciseTracker";
+import {
+  ExerciseTracker,
+  requiredLandmarksFor,
+} from "@/lib/cv/exerciseTracker";
 import { SafetyWatcher } from "@/lib/cv/safety";
 import { EnvironmentChecker, viewForPosture } from "@/lib/cv/environment";
 import { usePoseStream } from "@/lib/cv/usePoseStream";
@@ -62,7 +66,11 @@ export function MotorExercise({
   voiceEnabled,
   onFinish,
 }: MotorExerciseProps) {
-  const rung = getLevel(exercise, level) as { reps: number; targetRomDeg: number; holdSeconds: number };
+  const rung = getLevel(exercise, level) as {
+    reps: number;
+    targetRomDeg: number;
+    holdSeconds: number;
+  };
 
   const [stage, setStage] = useState<Stage>("setup");
   const [live, setLive] = useState<LiveTrackingState | null>(null);
@@ -102,7 +110,12 @@ export function MotorExercise({
 
   /** Send a safety alert. Fire and forget: it must not block the session. */
   const reportAlert = useCallback(
-    (alert: { kind: string; severity: string; message: string; evidence: Record<string, unknown> }) => {
+    (alert: {
+      kind: string;
+      severity: string;
+      message: string;
+      evidence: Record<string, unknown>;
+    }) => {
       void fetch("/api/alerts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,7 +141,12 @@ export function MotorExercise({
   );
 
   const handleFrame = useCallback(
-    (frame: PoseFrame, timestampMs: number) => {
+    (
+      frame: PoseFrame,
+      timestampMs: number,
+      _raw: NormalizedLandmark[],
+      aspectRatio: number,
+    ) => {
       const tracker = trackerRef.current;
       if (!tracker) return;
 
@@ -148,20 +166,29 @@ export function MotorExercise({
         });
       }
 
-      if (stageRef.current === "setup") {
+      if (stageRef.current === "setup" || stageRef.current === "ready") {
         const checker = checkerRef.current;
         checker.update(frame);
+
         if (checker.sampleCount >= SETUP_FRAMES) {
           const assessment = checker.result();
           setSetupAdvice(assessment.advice);
-          if (assessment.feasible) setStage("ready");
+
+          if (stageRef.current === "setup" && assessment.feasible) {
+            setStage("ready");
+          }
+
+          if (stageRef.current === "ready" && !assessment.feasible) {
+            setStage("setup");
+          }
         }
+
         return;
       }
 
       if (stageRef.current !== "running") return;
 
-      const state = tracker.update(frame, timestampMs);
+      const state = tracker.update(frame, timestampMs, aspectRatio);
       setLive(state);
 
       // Count out loud, so the person does not have to look at the screen to
@@ -182,7 +209,10 @@ export function MotorExercise({
     [finish, live?.trackingValid, reportAlert, say],
   );
 
-  const { videoRef, status, error } = usePoseStream({ onFrame: handleFrame, enabled: true });
+  const { videoRef, status, error } = usePoseStream({
+    onFrame: handleFrame,
+    enabled: true,
+  });
 
   // Keep the overlay's pixel grid matched to the video it sits on.
   useEffect(() => {
@@ -208,7 +238,8 @@ export function MotorExercise({
   });
 
   useEffect(() => {
-    if (stage === "ready") say("When you are ready, say I'm ready, or press the button.");
+    if (stage === "ready")
+      say("When you are ready, say I'm ready, or press the button.");
   }, [stage, say]);
 
   // The progress bar counts movements that met the range and the hold. The
@@ -223,11 +254,15 @@ export function MotorExercise({
   return (
     <section className={styles.exercise} aria-labelledby="exercise-title">
       <div className={styles.exerciseHead}>
-        <p className="caption">{exercise.posture === "standing" ? "Standing" : "Seated"}</p>
+        <p className="caption">
+          {exercise.posture === "standing" ? "Standing" : "Seated"}
+        </p>
         <h2 id="exercise-title" className="h1">
           {exercise.name}
         </h2>
-        <p className={`${styles.instruction} body-lg`}>{exercise.instruction}</p>
+        <p className={`${styles.instruction} body-lg`}>
+          {exercise.instruction}
+        </p>
       </div>
 
       <div className={styles.stage}>
@@ -236,7 +271,11 @@ export function MotorExercise({
             lines up without flipping the coordinates. */}
         <div className={styles.mirror}>
           <video ref={videoRef} className={styles.video} playsInline muted />
-          <canvas ref={canvasRef} className={styles.overlay} aria-hidden="true" />
+          <canvas
+            ref={canvasRef}
+            className={styles.overlay}
+            aria-hidden="true"
+          />
         </div>
 
         {status !== "running" && (
@@ -273,7 +312,10 @@ export function MotorExercise({
           <StatusTag tone="positive">Camera ready</StatusTag>
           <p className="body-lg">
             You will do this {rung.reps} times
-            {rung.holdSeconds > 0 ? `, holding each one for ${rung.holdSeconds} seconds` : ""}.
+            {rung.holdSeconds > 0
+              ? `, holding each one for ${rung.holdSeconds} seconds`
+              : ""}
+            .
           </p>
           <Button variant="primary" onClick={begin}>
             I&apos;m ready
@@ -302,8 +344,12 @@ export function MotorExercise({
             {live?.holdRemaining ? (
               <StatusTag tone="caution">{`Hold ${live.holdRemaining}s`}</StatusTag>
             ) : null}
-            {live && !live.trackingValid && <StatusTag tone="caution">Cannot see you</StatusTag>}
-            {live?.trackingValid && <StatusTag tone="positive">Tracking</StatusTag>}
+            {live && !live.trackingValid && (
+              <StatusTag tone="caution">Cannot see you</StatusTag>
+            )}
+            {live?.trackingValid && (
+              <StatusTag tone="positive">Tracking</StatusTag>
+            )}
           </div>
 
           {live?.guidance && (
