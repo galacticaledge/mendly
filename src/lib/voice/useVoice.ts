@@ -83,65 +83,114 @@ function hearingOurselves(): boolean {
 /* Speaking                                                            */
 /* ------------------------------------------------------------------ */
 
-export function useSpeech() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [speaking, setSpeaking] = useState(false);
-  /** Turned off from the session screen; remembered for the whole session. */
-  const [enabled, setEnabled] = useState(true);
+/**
+ * The prompt being spoken, at module scope rather than in the hook.
+ *
+ * Speaking is one-at-a-time for the same reason listening is: there is one set
+ * of speakers, and a prompt that outlives the screen that asked for it is not
+ * a stale render, it is a voice talking over the next page. Holding it here is
+ * what lets it be stopped from anywhere, including after the component that
+ * started it has gone.
+ */
+type Prompt = {
+  /** Set once this prompt has been called off. Checked after every await. */
+  cancelled: boolean;
+  audio: HTMLAudioElement | null;
+  /** The object URL behind `audio`, revoked when the prompt is done with. */
+  url: string | null;
+};
 
-  const finished = useCallback(() => {
-    notePromptPlaying(false);
-    setSpeaking(false);
-  }, []);
+let current: Prompt | null = null;
 
-  const cancel = useCallback(() => {
-    audioRef.current?.pause();
-    audioRef.current = null;
-    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
-    finished();
-  }, [finished]);
+/**
+ * Stop talking, now.
+ *
+ * Pausing the audio is the easy half. The half that actually broke this is
+ * that `speak` is asynchronous: fetching a prompt from ElevenLabs takes a few
+ * hundred milliseconds, and leaving the page inside that window used to let
+ * the request finish afterwards, build an `Audio` the cleanup had already run
+ * past, and play it to the end over whatever the person had navigated to. So
+ * the prompt is marked cancelled as well as paused, and every step after an
+ * await checks that mark before carrying on.
+ */
+export function stopSpeaking(): void {
+  const prompt = current;
+  current = null;
 
-  const speak = useCallback(
-    async (text: string) => {
-      if (!enabled || !text) return;
-      cancel();
-      setSpeaking(true);
-      notePromptPlaying(true);
+  if (prompt) {
+    prompt.cancelled = true;
+    prompt.audio?.pause();
+    releaseUrl(prompt);
+  }
 
-      try {
-        const response = await fetch("/api/voice/speak", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        });
-
-        // 204: no voice provider configured, so use the browser's own.
-        if (response.status === 204 || !response.ok) {
-          speakWithBrowser(text, finished);
-          return;
-        }
-
-        const blob = await response.blob();
-        const audio = new Audio(URL.createObjectURL(blob));
-        audioRef.current = audio;
-        audio.onended = finished;
-        audio.onerror = () => {
-          speakWithBrowser(text, finished);
-        };
-        await audio.play();
-      } catch {
-        speakWithBrowser(text, finished);
-      }
-    },
-    [cancel, enabled, finished],
-  );
-
-  useEffect(() => cancel, [cancel]);
-
-  return { speak, cancel, speaking, enabled, setEnabled };
+  // The browser's own voice is global and outlives any component, so it has to
+  // be silenced whether or not we were the ones who started it.
+  if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+  notePromptPlaying(false);
 }
 
-function speakWithBrowser(text: string, done: () => void) {
+function releaseUrl(prompt: Prompt): void {
+  if (prompt.url === null) return;
+  URL.revokeObjectURL(prompt.url);
+  prompt.url = null;
+}
+
+/**
+ * Say one line, replacing anything already being said.
+ *
+ * `done` runs when the line finishes on its own. A line that is cancelled is
+ * not finished, so it does not run — the caller asked for silence and gets it.
+ */
+export async function speakAloud(text: string, done: () => void): Promise<void> {
+  stopSpeaking();
+
+  const prompt: Prompt = { cancelled: false, audio: null, url: null };
+  current = prompt;
+  notePromptPlaying(true);
+
+  const finish = () => {
+    if (prompt.cancelled) return;
+    releaseUrl(prompt);
+    if (current === prompt) current = null;
+    notePromptPlaying(false);
+    done();
+  };
+
+  try {
+    const response = await fetch("/api/voice/speak", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (prompt.cancelled) return;
+
+    // 204: no voice provider configured, so use the browser's own.
+    if (response.status === 204 || !response.ok) {
+      speakWithBrowser(text, prompt, finish);
+      return;
+    }
+
+    const blob = await response.blob();
+    if (prompt.cancelled) return;
+
+    prompt.url = URL.createObjectURL(blob);
+    const audio = new Audio(prompt.url);
+    prompt.audio = audio;
+    audio.onended = finish;
+    audio.onerror = () => speakWithBrowser(text, prompt, finish);
+
+    await audio.play();
+    // `play()` resolves once playback has actually begun, which is another
+    // window to have left in.
+    if (prompt.cancelled) audio.pause();
+  } catch {
+    if (prompt.cancelled) return;
+    speakWithBrowser(text, prompt, finish);
+  }
+}
+
+function speakWithBrowser(text: string, prompt: Prompt, done: () => void) {
+  if (prompt.cancelled) return;
   if (typeof window === "undefined" || !window.speechSynthesis) {
     done();
     return;
@@ -152,6 +201,35 @@ function speakWithBrowser(text: string, done: () => void) {
   utterance.onend = done;
   utterance.onerror = done;
   window.speechSynthesis.speak(utterance);
+}
+
+export function useSpeech() {
+  const [speaking, setSpeaking] = useState(false);
+  /** Turned off from the session screen; remembered for the whole session. */
+  const [enabled, setEnabled] = useState(true);
+
+  const finished = useCallback(() => setSpeaking(false), []);
+
+  const cancel = useCallback(() => {
+    stopSpeaking();
+    setSpeaking(false);
+  }, []);
+
+  const speak = useCallback(
+    async (text: string) => {
+      if (!enabled || !text) return;
+      setSpeaking(true);
+      await speakAloud(text, finished);
+    },
+    [enabled, finished],
+  );
+
+  // Leaving the page stops the prompt. `stopSpeaking` rather than `cancel`,
+  // because there is no state left to set once this runs, and an empty
+  // dependency list so a re-render cannot silence a prompt mid-sentence.
+  useEffect(() => stopSpeaking, []);
+
+  return { speak, cancel, speaking, enabled, setEnabled };
 }
 
 /* ------------------------------------------------------------------ */
