@@ -1,10 +1,31 @@
-# The whole platform, locally.
+# The whole platform: locally by default, and on a public host once .env says
+# so. One file, because the difference between the two is a handful of values
+# rather than a different shape.
 #
 #   docker compose up                    app + database
 #   docker compose --profile seed up     the same, plus demo data
 #
 # `./mendly up --seed` is a thin wrapper over the second form, for the `--seed`
 # parameter described in the product notes.
+#
+# To deploy on a droplet, put this in .env beside this file and bring it up the
+# same way. Compose has no conditionals, so it is a few named values rather
+# than one switch:
+#
+#   APP_PORT=80                  # answer on the web port
+#   DB_BIND=127.0.0.1            # keep Postgres off the public interface
+#   RESTART_POLICY=unless-stopped
+#   SESSION_COOKIE_SECURE=false  # only if there is no TLS — see below
+#   POSTGRES_PASSWORD=...        # generated, not thought of
+#   SESSION_SECRET=...           # likewise; the default is in a public repo
+#
+# SESSION_COOKIE_SECURE=false is what makes sign-in work over plain HTTP: a
+# browser discards a Secure cookie that did not arrive over TLS, so without it
+# the sign-in returns 200 and bounces straight back to the form. It is a real
+# downgrade — the cookie then travels in clear text and can be replayed — so it
+# is for invented demo data only. Note also that without TLS the camera and
+# microphone will not work at all, because browsers only grant those in a
+# secure context; sign-in, the dashboard and the practitioner side are fine.
 
 services:
   db:
@@ -16,9 +37,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mendly}
       POSTGRES_DB: mendly
     ports:
-      - "${DB_PORT:-5432}:5432"
+      # Bound to the loopback interface unless told otherwise. The only things
+      # that reach the database from outside the compose network are host-side
+      # scripts like `npm run db:seed`, and they run on the host — so on a
+      # public address this is the difference between a private database and
+      # Postgres on the internet behind one password.
+      - "${DB_BIND:-127.0.0.1}:${DB_PORT:-5432}:5432"
     volumes:
       - mendly-data:/var/lib/postgresql/data
+    restart: "${RESTART_POLICY:-no}"
     healthcheck:
       # The app and the seed job both wait on this, so neither starts against a
       # database that is still coming up.
@@ -48,8 +75,12 @@ services:
       DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
       DATABASE_SSL: "false"
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
+      # Named here rather than left to env_file so it is visible in this file
+      # and can be set from the shell as well as .env. See the header.
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-true}"
     ports:
       - "${APP_PORT:-3000}:3000"
+    restart: "${RESTART_POLICY:-no}"
     depends_on:
       db:
         condition: service_healthy

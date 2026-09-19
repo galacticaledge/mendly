@@ -83,7 +83,8 @@ product is fully usable with no API keys at all.
 |---|---|---|
 | `DATABASE_URL` | none — **required** | PostgreSQL connection string. Compose sets this for you; outside Docker, point it at your own instance. The app refuses to start without it. |
 | `DATABASE_SSL` | `false` | Set to `true` for a managed instance that terminates TLS with its own CA, such as TigerData or DigitalOcean. |
-| `SESSION_SECRET` | a fixed development key | Signs the session cookie. In development it falls back to a known key so sessions survive a dev-server restart; **in production the app throws on startup unless you set it.** |
+| `SESSION_SECRET` | a fixed development key | Signs the session cookie. In development it falls back to a known key so sessions survive a dev-server restart; **in production the app throws on startup unless you set it.** Compose falls back to a published placeholder so `docker compose up` needs no setup; the app says so in the log if you leave it. |
+| `SESSION_COOKIE_SECURE` | `true` in production | Set to `false` to serve over plain HTTP — see *Deploying without TLS*. |
 
 Changing `SESSION_SECRET` invalidates every session cookie already issued, so
 everyone is signed out on the next request. That is the intended behaviour and
@@ -147,7 +148,41 @@ nothing under `npm run dev`.
 |---|---|---|
 | `POSTGRES_PASSWORD` | `mendly` | The database password. Compose builds `DATABASE_URL` from it, so changing it is enough — do not also set `DATABASE_URL`. |
 | `DB_PORT` | `5432` | Host port for the database. Change it if a PostgreSQL installed on the machine is already holding 5432. |
-| `APP_PORT` | `3000` | Host port for the app. |
+| `DB_BIND` | `127.0.0.1` | Which interface that port is published on. Loopback by default, so the database is reachable from host scripts but not from the network. |
+| `APP_PORT` | `3000` | Host port for the app. `80` on a server. |
+| `RESTART_POLICY` | `no` | `unless-stopped` on a server, so the stack comes back after a reboot. |
+
+### Deploying without TLS
+
+There is one compose file. A droplet differs from a laptop by a handful of
+values, so put them in `.env` and bring it up the same way:
+
+```sh
+APP_PORT=80
+DB_BIND=127.0.0.1
+RESTART_POLICY=unless-stopped
+SESSION_COOKIE_SECURE=false
+POSTGRES_PASSWORD=...        # openssl rand -hex 24
+SESSION_SECRET=...           # openssl rand -hex 32
+```
+
+`SESSION_COOKIE_SECURE=false` is what makes sign-in work at all over plain
+HTTP. A browser will not store a `Secure` cookie that did not arrive over TLS,
+so without it the sign-in returns 200, the cookie is discarded, and the next
+page sends the person straight back to the form — a login that looks broken
+rather than insecure.
+
+Two things are true of running this way, and both matter.
+
+The session cookie travels in clear text, so anyone on the network path can
+read one and sign in as that person. That is a trade worth making for invented
+demo data and never for a real patient's.
+
+And **the camera and microphone will not work**. Browsers grant `getUserMedia`
+and speech recognition only in a secure context, so on `http://<ip>` the
+exercise session cannot start. Sign-in, the dashboard and the whole
+practitioner side are unaffected. If you need the session itself, you need a
+hostname and a certificate rather than a bare address.
 
 Everything in `.env` and `.env.local` now reaches the container, so the rest of
 this page applies under Docker too — with the four overrides named at the top

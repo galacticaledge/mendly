@@ -59,9 +59,27 @@ export async function verifyPassword(password: string, stored: string): Promise<
 /* Session cookie                                                    */
 /* ---------------------------------------------------------------- */
 
+/** The placeholder in .env.example and in docker-compose.yml's fallback. */
+const PLACEHOLDER_SECRET = "change-me-in-production";
+let warnedAboutPlaceholderSecret = false;
+
 function signingKey(): string {
   const secret = process.env.SESSION_SECRET;
-  if (secret) return secret;
+  if (secret) {
+    // Shipped as-is, this is not a secret: it is a published string, and
+    // anyone holding it can forge a cookie for any account. Compose falls back
+    // to it so `docker compose up` works with no setup, which is right for a
+    // laptop and wrong the moment the port faces anyone else.
+    if (secret === PLACEHOLDER_SECRET && !warnedAboutPlaceholderSecret) {
+      warnedAboutPlaceholderSecret = true;
+      console.warn(
+        "[mendly] SESSION_SECRET is still the published placeholder. Anyone " +
+          "who knows it can sign in as anyone. Set it in .env before this " +
+          "reaches an address other people can open.",
+      );
+    }
+    return secret;
+  }
   if (process.env.NODE_ENV === "production") {
     throw new Error("SESSION_SECRET must be set in production.");
   }
@@ -71,6 +89,37 @@ function signingKey(): string {
 
 function sign(payload: string): string {
   return createHmac("sha256", signingKey()).update(payload).digest("base64url");
+}
+
+let warnedAboutInsecureCookie = false;
+
+/**
+ * Whether the session cookie is marked `Secure`.
+ *
+ * On by default in production, and a browser will not store a `Secure` cookie
+ * that arrived over plain HTTP. That is the right default and it has a sharp
+ * edge: a production build served on a bare droplet IP answers the sign-in
+ * with 200, sets a cookie the browser throws away, and bounces the person back
+ * to the form — a login that looks broken rather than insecure.
+ *
+ * `SESSION_COOKIE_SECURE=false` is the deliberate way to run without TLS. It
+ * is opt-in, and it is a real downgrade: the cookie then travels in clear text
+ * and anyone on the network path can read it and sign in as that person. It is
+ * a demo trade with invented data, never one to make with a real patient's.
+ */
+function cookieSecure(): boolean {
+  if (process.env.SESSION_COOKIE_SECURE === "false") {
+    if (!warnedAboutInsecureCookie) {
+      warnedAboutInsecureCookie = true;
+      console.warn(
+        "[mendly] SESSION_COOKIE_SECURE=false: session cookies are being sent " +
+          "without the Secure flag, so they travel in clear text over HTTP. " +
+          "Demo data only.",
+      );
+    }
+    return false;
+  }
+  return process.env.NODE_ENV === "production";
 }
 
 type TokenBody = SessionUser & { exp: number };
@@ -109,7 +158,7 @@ export async function startSession(user: SessionUser): Promise<void> {
   store.set(COOKIE_NAME, createToken(user), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: cookieSecure(),
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
