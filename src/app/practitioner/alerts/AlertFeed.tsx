@@ -9,7 +9,7 @@
  * title carries the count for someone working in another tab.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AlertSeverity } from "@/lib/contracts";
 import { AlertCard } from "@/components/AlertCard/AlertCard";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
@@ -48,6 +48,22 @@ export function AlertFeed({ initial }: { initial: FeedAlert[] }) {
     return () => source.close();
   }, []);
 
+  /**
+   * Mark one alert seen in our own copy of the list.
+   *
+   * This list is seeded from the server once and grown by the event stream, so
+   * it cannot be rebuilt from a fresh prop — that would drop everything that
+   * arrived since the page loaded. `router.refresh()` alone therefore changed
+   * nothing here, and the button stayed until a reload remounted the feed.
+   */
+  const acknowledge = useCallback((id: string) => {
+    setAlerts((current) =>
+      current.map((alert) =>
+        alert.id === id ? { ...alert, acknowledged_at: new Date().toISOString() } : alert,
+      ),
+    );
+  }, []);
+
   const open = alerts.filter((alert) => !alert.acknowledged_at);
 
   useEffect(() => {
@@ -76,7 +92,11 @@ export function AlertFeed({ initial }: { initial: FeedAlert[] }) {
             at={new Date(alert.time).toLocaleString("en-GB")}
             evidence={alert.evidence}
             acknowledged={Boolean(alert.acknowledged_at)}
-            action={alert.acknowledged_at ? undefined : <AcknowledgeButton alertId={alert.id} />}
+            action={
+              alert.acknowledged_at ? undefined : (
+                <AcknowledgeButton alertId={alert.id} onAcknowledged={acknowledge} />
+              )
+            }
           />
         ))}
       </ul>
