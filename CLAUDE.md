@@ -66,8 +66,17 @@ The design system defines exactly these, and they are the whole first release:
 | `ProgressBar` | Track `brand-wash`, fill `brand`. Always prints its value as text. `milestone` switches the fill to `accent` and is honored only at 100. |
 | `StatusTag` | One structure for four tones: `-wash` fill, `-deep` border, `-deep` text, distinct icon per tone. `positive` / `caution` / `alert` / `neutral`. |
 | `Input` | 48px tall, visible 2px `line-strong` border, label always visible above the field, never a placeholder as label. |
+| `Select` | Added for the practitioner's rule editor, which sets a level ceiling per exercise. Same rules as `Input`. |
+| `Choice` | Added for the questions after a session, reused by the rule editor. A radio group drawn as full-width rows: the person answering has just exercised their affected arm, so the target is the whole row. Selected state is a tick plus a fill, never colour alone. |
+| `AlertCard` | Added for the practitioner's alert feed. A row, not a card — alerts arrive as a list and the list must be scannable. Severity is a word plus a distinct icon shape, and the evidence behind a signal is always shown, because a practitioner deciding whether to phone someone needs to see what the camera observed rather than only a conclusion. |
 
 Do not add components speculatively. No Toast, Avatar, Tabs, Modal, Skeleton or Card wrapper until a real screen needs one, and say so when you add it.
+
+`SessionCard` now also accepts `action.href`, rendering its one action as a link styled exactly as the primary button. That is what lets a server-rendered card start a flow without the card becoming a client component; the "exactly one action" invariant is unchanged.
+
+## The practitioner side
+
+Everything under `/practitioner` is a working tool rather than a calm surface: someone scanning a caseload between appointments needs density the patient app deliberately refuses. It is wider (1080px, with `TopNav wide`), uses tables, and puts several things on a screen. It uses the same tokens throughout — the palette and type scale are the product, not a patient-only skin — and the rules that exist for access rather than for calm (48px targets, focus rings, status never by colour alone) apply there unchanged.
 
 ## The dashboard
 
