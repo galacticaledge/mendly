@@ -33,8 +33,10 @@ services:
     environment:
       DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
       SESSION_SECRET: ${SESSION_SECRET:-change-me-in-production}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      BACKBOARD_API_KEY: ${BACKBOARD_API_KEY:-}
+      BACKBOARD_LLM_PROVIDER: ${BACKBOARD_LLM_PROVIDER:-google}
+      BACKBOARD_MODEL: ${BACKBOARD_MODEL:-gemini-2.5-flash}
+      BACKBOARD_MEMORY: ${BACKBOARD_MEMORY:-Auto}
       ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
       ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
     ports:
@@ -51,7 +53,9 @@ services:
     profiles: ["seed"]
     environment:
       DATABASE_URL: postgres://mendly:${POSTGRES_PASSWORD:-mendly}@db:5432/mendly
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      BACKBOARD_API_KEY: ${BACKBOARD_API_KEY:-}
+      BACKBOARD_LLM_PROVIDER: ${BACKBOARD_LLM_PROVIDER:-google}
+      BACKBOARD_MODEL: ${BACKBOARD_MODEL:-gemini-2.5-flash}
     command: ["npm", "run", "db:seed"]
     depends_on:
       db:

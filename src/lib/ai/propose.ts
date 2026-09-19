@@ -3,10 +3,16 @@
  *
  *   patient data + progress + scores
  *     → performance profile        (run through the data)
- *     → model or rules engine      (recommend a set)
+ *     → Backboard, routed to Gemini (recommend a set)
  *     → guardrails                 (run validation)
  *     → stored as 'proposed'       (send it back to the requester)
  *     → practitioner review        (the step no code can skip)
+ *
+ * Backboard is the only LLM client. It keeps the planner's conversation and
+ * memory per patient, so Mendly does not carry an AI memory layer of its own —
+ * only the thread id that addresses it. When Backboard is unreachable or
+ * unconfigured, the local rules engine drafts the set instead, because a
+ * patient waiting on an exercise session should not be blocked by an API.
  *
  * Nothing here delivers anything to a patient. The output is a row awaiting
  * human review, which is the whole design (docs/practitioner_guardrails_flow).
@@ -16,7 +22,7 @@ import "server-only";
 import type { ExerciseResult, ExerciseSetProposal, GuardrailResult, PractitionerRules } from "@/lib/contracts";
 import { buildProfile } from "@/lib/ai/performance";
 import { applyGuardrails } from "@/lib/ai/guardrails";
-import { proposeWithGemini, isGeminiConfigured } from "@/lib/ai/gemini";
+import { proposeWithBackboard, isBackboardConfigured } from "@/lib/ai/backboard";
 import { proposeWithRules } from "@/lib/ai/rulesEngine";
 import {
   countCompletedSessions,
@@ -24,6 +30,7 @@ import {
   getCurrentRules,
   getPatient,
   listRecentResults,
+  setBackboardThread,
 } from "@/lib/db/queries";
 
 /** The rules a patient starts with before a practitioner has set any. */
@@ -61,7 +68,7 @@ function patientSummary(patient: {
 export type ProposalOutcome = GuardrailResult & {
   /** Which engine answered, after any fallback. Shown in the review screen. */
   source: ExerciseSetProposal["source"];
-  /** True when a model was configured but did not produce a usable answer. */
+  /** True when Backboard was configured but did not produce a usable answer. */
   fellBack: boolean;
 };
 
@@ -91,13 +98,23 @@ export async function proposeForPatient(patientId: string): Promise<ProposalOutc
   let proposal: ExerciseSetProposal | null = null;
   let fellBack = false;
 
-  if (isGeminiConfigured()) {
-    proposal = await proposeWithGemini({
-      rules,
-      profile,
-      patientSummary: patientSummary(patient),
-    });
-    fellBack = proposal === null;
+  if (isBackboardConfigured()) {
+    const result = await proposeWithBackboard(
+      { rules, profile, patientSummary: patientSummary(patient) },
+      patient.backboard_thread_id,
+    );
+
+    if (result) {
+      proposal = result.proposal;
+      // Backboard creates the thread on the first call. Storing the id is what
+      // makes the next proposal continue the same conversation instead of
+      // starting the planner over with no memory of this patient.
+      if (result.threadId && result.threadId !== patient.backboard_thread_id) {
+        await setBackboardThread(patientId, result.threadId);
+      }
+    } else {
+      fellBack = true;
+    }
   }
 
   if (!proposal) {

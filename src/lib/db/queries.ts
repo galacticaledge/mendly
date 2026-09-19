@@ -44,6 +44,8 @@ export type PatientRow = {
   affected_side: "left" | "right" | "both";
   diagnosis_date: Date | null;
   history: string;
+  /** The patient's Backboard thread, or null before their first proposal. */
+  backboard_thread_id: string | null;
 };
 
 export function findPractitionerByEmail(email: string) {
@@ -63,6 +65,20 @@ export function getPatient(id: string) {
 
 export function getPractitioner(id: string) {
   return queryOne<PractitionerRow>(`SELECT * FROM practitioners WHERE id = $1`, [id]);
+}
+
+/**
+ * Remember which Backboard thread belongs to this patient.
+ *
+ * Backboard creates the thread on the first proposal and returns its id. This
+ * is the only part of the planner's memory Mendly stores — the conversation
+ * itself lives in Backboard, which is the point of using it.
+ */
+export function setBackboardThread(patientId: string, threadId: string) {
+  return query(`UPDATE patients SET backboard_thread_id = $2 WHERE id = $1`, [
+    patientId,
+    threadId,
+  ]);
 }
 
 /** A patient belongs to exactly one practitioner; everything else is denied. */

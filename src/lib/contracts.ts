@@ -221,8 +221,15 @@ export type ExerciseSetProposal = {
   exercises: ProposedExercise[];
   /** One paragraph explaining the set as a whole. */
   summary: string;
-  /** Which engine produced it, recorded so a demo can be explained honestly. */
-  source: "gemini" | "rules-engine";
+  /**
+   * Which engine produced it, recorded so a draft can be explained honestly.
+   *
+   * `backboard` is the normal path: the LLM service from the architecture
+   * plan, routed to Gemini. `rules-engine` is the local deterministic planner,
+   * which runs when no key is configured or when the model call fails, so a
+   * patient always has a session to do.
+   */
+  source: "backboard" | "rules-engine";
 };
 
 /** A single way a proposal broke the practitioner's rules. */
