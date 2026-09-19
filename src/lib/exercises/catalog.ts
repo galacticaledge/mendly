@@ -432,6 +432,18 @@ export function getLevel(exercise: Exercise, level: Level) {
   return exercise.levels[level - 1] ?? exercise.levels[exercise.levels.length - 1];
 }
 
+/** Patient-facing prescription for one approved motor exercise level. */
+export function describeMotorPrescription(exercise: MotorExercise, level: Level): string {
+  const rung = getLevel(exercise, level) as { reps: number; targetRomDeg: number; holdSeconds: number };
+  return [
+    `${rung.reps} reps`,
+    ...(!exercise.hideLiveFeedback
+      ? [`Move through ${rung.targetRomDeg}° at the ${exercise.joint.name}`]
+      : []),
+    ...(rung.holdSeconds > 0 ? [`Hold for ${rung.holdSeconds} seconds`] : []),
+  ].join(" · ");
+}
+
 /**
  * Rough minutes an exercise takes at a level.
  *

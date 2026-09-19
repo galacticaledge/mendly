@@ -24,7 +24,7 @@ import type {
   PoseFrame,
   Level,
 } from "@/lib/contracts";
-import { getLevel } from "@/lib/exercises/catalog";
+import { describeMotorPrescription, getLevel } from "@/lib/exercises/catalog";
 import {
   ExerciseTracker,
   requiredLandmarksFor,
@@ -71,6 +71,7 @@ export function MotorExercise({
     targetRomDeg: number;
     holdSeconds: number;
   };
+  const prescription = describeMotorPrescription(exercise, level);
 
   const [stage, setStage] = useState<Stage>("setup");
   const [live, setLive] = useState<LiveTrackingState | null>(null);
@@ -306,6 +307,10 @@ export function MotorExercise({
         <p className={`${styles.instruction} body-lg`}>
           {exercise.instruction}
         </p>
+        <p className="body-lg">{prescription}</p>
+        {!exercise.hideLiveFeedback && stage !== "running" && (
+          <p className="body">Progress: {live?.validReps ?? 0} / {rung.reps} valid reps</p>
+        )}
       </div>
 
       <div className={styles.stage}>
@@ -370,13 +375,6 @@ export function MotorExercise({
       {stage === "ready" && (
         <div className={styles.panel}>
           <StatusTag tone="positive">Camera ready</StatusTag>
-          <p className="body-lg">
-            You will do this {rung.reps} times
-            {rung.holdSeconds > 0
-              ? `, holding each one for ${rung.holdSeconds} seconds`
-              : ""}
-            .
-          </p>
           {hideFeedback && (
             <p className={`${styles.hint} body`}>
               The screen will not show you how far you have moved for this one. That is on purpose —
@@ -406,7 +404,7 @@ export function MotorExercise({
                 label="Repetitions"
                 value={validReps}
                 max={rung.reps}
-                valueText={`${validReps} of ${rung.reps} done`}
+                valueText={`${validReps} / ${rung.reps} valid reps`}
               />
 
               {shortAttempts > 0 && (
