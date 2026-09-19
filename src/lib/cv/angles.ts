@@ -17,8 +17,11 @@ import type { Landmark, PoseFrame, PoseLandmarkName } from "@/lib/contracts";
 
 type Vec2 = { x: number; y: number };
 
-function vector(from: Landmark, to: Landmark): Vec2 {
-  return { x: to.x - from.x, y: to.y - from.y };
+function vector(from: Landmark, to: Landmark, aspectRatio = 1): Vec2 {
+  return {
+    x: (to.x - from.x) * aspectRatio,
+    y: to.y - from.y,
+  };
 }
 
 function magnitude(v: Vec2): number {
@@ -35,16 +38,19 @@ function magnitude(v: Vec2): number {
  * straight at the lens measures short, which is what the setup check and the
  * on-screen framing guidance are for.
  */
-export function angleAt(a: Landmark, vertex: Landmark, c: Landmark): number {
-  const v1 = vector(vertex, a);
-  const v2 = vector(vertex, c);
+export function angleAt(
+  a: Landmark,
+  vertex: Landmark,
+  c: Landmark,
+  aspectRatio = 1,
+): number {
+  const v1 = vector(vertex, a, aspectRatio);
+  const v2 = vector(vertex, c, aspectRatio);
 
   const denominator = magnitude(v1) * magnitude(v2);
-  // Two landmarks resolving to the same point leaves the angle undefined.
   if (denominator < 1e-6) return 0;
 
   const cosine = (v1.x * v2.x + v1.y * v2.y) / denominator;
-  // Floating point can push the cosine a hair past ±1, where acos is NaN.
   const clamped = Math.min(1, Math.max(-1, cosine));
   return (Math.acos(clamped) * 180) / Math.PI;
 }
@@ -64,12 +70,17 @@ export function rayLengths(
   from: PoseLandmarkName,
   vertex: PoseLandmarkName,
   to: PoseLandmarkName,
+  aspectRatio = 1,
 ): { first: number; second: number } | null {
   const a = frame[from];
   const b = frame[vertex];
   const c = frame[to];
   if (!a || !b || !c) return null;
-  return { first: magnitude(vector(b, a)), second: magnitude(vector(b, c)) };
+
+  return {
+    first: magnitude(vector(b, a, aspectRatio)),
+    second: magnitude(vector(b, c, aspectRatio)),
+  };
 }
 
 /** The angle for a named landmark triple, or null if any point is missing. */
@@ -78,10 +89,12 @@ export function angleFromFrame(
   from: PoseLandmarkName,
   vertex: PoseLandmarkName,
   to: PoseLandmarkName,
+  aspectRatio = 1,
 ): number | null {
   const a = frame[from];
   const b = frame[vertex];
   const c = frame[to];
   if (!a || !b || !c) return null;
-  return angleAt(a, b, c);
+
+  return angleAt(a, b, c, aspectRatio);
 }
