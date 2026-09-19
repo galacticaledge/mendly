@@ -1,0 +1,84 @@
+/* Flat brand bar. The accent stays out of navigation. */
+.bar {
+  background: var(--brand);
+  color: var(--inverse);
+}
+
+.inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+}
+
+.wide { max-width: 1080px; }
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wordmark,
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  color: var(--inverse);
+  text-decoration: none;
+}
+
+.wordmark {
+  padding: 0 var(--space-2);
+  margin-left: calc(-1 * var(--space-2));
+}
+
+.link {
+  padding: 0 var(--space-3);
+  transition: background-color 150ms ease;
+}
+
+.wordmark:hover,
+.link:hover {
+  background: var(--brand-deep);
+}
+
+.wordmark:focus-visible,
+.link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.active {
+  text-decoration: underline;
+  text-decoration-color: var(--inverse);
+  text-decoration-thickness: 2px;
+  text-underline-offset: var(--space-2);
+}
+
+/* Sits outside the nav list: signing out is not a place in the product, and
+   it must not count against the five-item limit. */
+.signOut {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  margin-left: auto;
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--inverse);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.signOut:hover { border-color: var(--inverse); }

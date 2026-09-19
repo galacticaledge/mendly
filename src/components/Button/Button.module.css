@@ -1,0 +1,64 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+/* Primary: the single main action on a screen. */
+.primary {
+  background: var(--accent-deep);
+  color: var(--inverse);
+}
+
+.primary:hover:not(:disabled),
+.primary:active:not(:disabled) {
+  background: var(--accent-press);
+}
+
+/* Secondary: brand outline. Teal text uses -deep, which carries text. */
+.secondary {
+  background: transparent;
+  border-color: var(--brand);
+  color: var(--brand-deep);
+}
+
+.secondary:hover:not(:disabled),
+.secondary:active:not(:disabled) {
+  background: var(--brand-wash);
+  border-color: var(--brand-deep);
+}
+
+/* Ghost: no fill or edge until hovered. */
+.ghost {
+  background: transparent;
+  color: var(--brand-deep);
+}
+
+.ghost:hover:not(:disabled),
+.ghost:active:not(:disabled) {
+  background: var(--brand-wash);
+}
+
+.button:disabled {
+  background: var(--surface-sunken);
+  border-color: transparent;
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}

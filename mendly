@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+# A small wrapper over docker compose, so `--seed` works as the product notes
+# describe it. Everything here can also be done with docker compose directly.
+set -e
+
+case "$1" in
+  up)
+    shift
+    if [ "$1" = "--seed" ]; then
+      echo "Starting Mendly with demo data..."
+      exec docker compose --profile seed up --build
+    fi
+    exec docker compose up --build "$@"
+    ;;
+  down)
+    shift
+    exec docker compose down "$@"
+    ;;
+  reset)
+    # Throws away the database volume as well, for a clean demo.
+    docker compose down -v
+    exec docker compose --profile seed up --build
+    ;;
+  seed)
+    exec docker compose --profile seed run --rm seed
+    ;;
+  logs)
+    shift
+    exec docker compose logs -f "$@"
+    ;;
+  *)
+    echo "Usage: ./mendly up [--seed] | down | reset | seed | logs"
+    exit 1
+    ;;
+esac

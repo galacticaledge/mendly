@@ -1,0 +1,73 @@
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.greeting {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.welcome,
+.heading,
+.text,
+.muted {
+  margin: 0;
+}
+
+.welcome {
+  color: var(--brand);
+}
+
+.muted {
+  color: var(--ink-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.list,
+.days {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/* A note the practitioner attached to today's set. Sits in the session card,
+   so it uses the page ground to separate itself from the card's surface. */
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+
+.note span {
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
