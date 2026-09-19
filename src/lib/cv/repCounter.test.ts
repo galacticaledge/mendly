@@ -11,12 +11,13 @@ import { test } from "node:test";
 import { RepCounter } from "@/lib/cv/repCounter";
 
 /** Rising from a 15° rest towards a 60° sweep, like an arm raise. */
-function armRaiseCounter(holdSeconds = 0) {
+function armRaiseCounter(holdSeconds = 0, targetReps = 10) {
   return new RepCounter({
     restAngleDeg: 15,
     direction: "increasing",
     targetRomDeg: 60,
     holdSeconds,
+    targetReps,
   });
 }
 
@@ -120,9 +121,44 @@ test("a closing joint is measured the same way as an opening one", () => {
     direction: "decreasing",
     targetRomDeg: 80,
     holdSeconds: 0,
+    targetReps: 10,
   });
   const down = Array.from({ length: 12 }, (_, i) => 170 - (90 * (i + 1)) / 12);
   const reps = run(counter, [...down, ...down.slice().reverse(), 170]);
   assert.equal(reps.length, 1);
   assert.equal(reps[0].valid, true);
+});
+
+test("nothing is counted until the joint has been seen at rest", () => {
+  const counter = armRaiseCounter();
+
+  // The person is already past the target when tracking starts. Holding there
+  // and then coming down is not a repetition: it never had a beginning.
+  run(counter, Array.from({ length: 40 }, () => 80));
+  assert.equal(counter.completedReps.length, 0);
+  assert.equal(counter.isArmed, false);
+
+  // Returning to rest arms the counter, and the next full movement counts.
+  run(counter, [40, 20, 15, 15], 0.9, 1400);
+  assert.equal(counter.isArmed, true);
+  const reps = run(counter, cycle(80), 0.9, 1600);
+  assert.equal(reps.length, 1);
+});
+
+test("the counter stops recording once the allowance is spent", () => {
+  const counter = armRaiseCounter(0, 3);
+
+  // Ten short movements against a target of three. Three attempts are allowed
+  // beyond the target at most, so recording must stop at five.
+  let t = 0;
+  for (let i = 0; i < 10; i += 1) {
+    run(counter, cycle(35), 0.9, t);
+    t += 2000;
+  }
+
+  assert.ok(counter.isFull);
+  assert.ok(
+    counter.completedReps.length <= 5,
+    `recorded ${counter.completedReps.length} attempts against a target of 3`,
+  );
 });

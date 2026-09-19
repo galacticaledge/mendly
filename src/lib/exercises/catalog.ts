@@ -96,22 +96,35 @@ const MOTOR: MotorExercise[] = [
     id: "forward_reach",
     modality: "motor",
     name: "Reach and hold",
-    instruction: "Reach your arm straight out in front of you and hold it there.",
+    instruction: "Reach your arm forward and out to about shoulder height, and hold it there.",
     posture: "seated",
     view: "upper",
     tags: [],
-    // Elbow extension held at the end of the reach: the same three landmarks
-    // as the bend, but the arm opens and stays open.
-    joint: { name: "elbow", from: "left_shoulder", vertex: "left_elbow", to: "left_wrist" },
+    // Measured at the shoulder, not the elbow, and reached out on a diagonal
+    // rather than straight ahead. Both choices are forced by the camera.
+    //
+    // A reach aimed straight at the lens is the one movement a single webcam
+    // cannot measure: the upper arm points almost directly at the camera, so
+    // it projects onto almost nothing in the image and the angle between it
+    // and anything else becomes noise. Reaching out on a diagonal keeps the
+    // arm across the image where it can be seen, and the shoulder angle opens
+    // steadily as the arm comes up — which is the part of the movement worth
+    // measuring anyway.
+    //
+    // This is a different exercise from the arm raise: out to the side and
+    // held, rather than lifted and lowered. The hold is the point of it.
+    joint: { name: "shoulder", from: "left_hip", vertex: "left_shoulder", to: "left_elbow" },
     direction: "increasing",
-    restAngleDeg: 70,
+    // The arm resting down by the side, which is where a seated person's arm
+    // actually is between repetitions.
+    restAngleDeg: 15,
     side: "mirror",
     levels: [
-      { level: 1, reps: 3, targetRomDeg: 50, holdSeconds: 2 },
-      { level: 2, reps: 5, targetRomDeg: 60, holdSeconds: 3 },
-      { level: 3, reps: 6, targetRomDeg: 70, holdSeconds: 4 },
-      { level: 4, reps: 8, targetRomDeg: 80, holdSeconds: 5 },
-      { level: 5, reps: 10, targetRomDeg: 90, holdSeconds: 6 },
+      { level: 1, reps: 3, targetRomDeg: 40, holdSeconds: 2 },
+      { level: 2, reps: 5, targetRomDeg: 50, holdSeconds: 3 },
+      { level: 3, reps: 6, targetRomDeg: 60, holdSeconds: 4 },
+      { level: 4, reps: 8, targetRomDeg: 65, holdSeconds: 5 },
+      { level: 5, reps: 10, targetRomDeg: 70, holdSeconds: 6 },
     ],
   },
   {

@@ -49,6 +49,29 @@ export function angleAt(a: Landmark, vertex: Landmark, c: Landmark): number {
   return (Math.acos(clamped) * 180) / Math.PI;
 }
 
+/**
+ * How long the two rays around the joint are in the image, as a fraction of
+ * the frame.
+ *
+ * A limb pointing towards or away from the camera projects onto almost
+ * nothing, and the angle it makes with anything else is then mostly noise —
+ * a few pixels of jitter at the elbow swings the measured angle by tens of
+ * degrees. Callers use this to tell "the arm is at 40°" apart from "the arm
+ * is pointing at the lens and the number means nothing".
+ */
+export function rayLengths(
+  frame: PoseFrame,
+  from: PoseLandmarkName,
+  vertex: PoseLandmarkName,
+  to: PoseLandmarkName,
+): { first: number; second: number } | null {
+  const a = frame[from];
+  const b = frame[vertex];
+  const c = frame[to];
+  if (!a || !b || !c) return null;
+  return { first: magnitude(vector(b, a)), second: magnitude(vector(b, c)) };
+}
+
 /** The angle for a named landmark triple, or null if any point is missing. */
 export function angleFromFrame(
   frame: PoseFrame,

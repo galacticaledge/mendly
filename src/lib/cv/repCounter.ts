@@ -11,6 +11,13 @@
  *        │                           │ (came back down early)    │ hold done
  *        └───────returned to rest────┴──────────▶ returning ◀────┘
  *
+ * Two guards sit around that machine. The counter will not start until it has
+ * seen the joint at rest at least once, so a person discovered already in the
+ * end position — or an exercise definition whose resting angle does not match
+ * how someone actually sits — cannot mint repetitions out of a starting
+ * posture. And it stops counting at a fixed ceiling above the target, so a
+ * miscounting exercise runs out rather than running away.
+ *
  * Exercises differ in whether the measured angle grows or shrinks during the
  * effort — a shoulder opens as the arm lifts, an elbow closes as the hand comes
  * up. Rather than write the machine twice, every angle is converted to
@@ -25,6 +32,12 @@ import { mean } from "@/lib/cv/smoothing";
 export type RepPhase = "waiting" | "rising" | "holding" | "returning";
 
 export type RepCounterConfig = {
+  /**
+   * Repetitions the level asks for. The counter stops recording at
+   * `reps + ATTEMPT_ALLOWANCE`, so a person can fall short a few times without
+   * the exercise ending, but the number can never run away.
+   */
+  targetReps: number;
   /** Angle the joint sits at between repetitions, in degrees. */
   restAngleDeg: number;
   /** Which way the angle moves while the person is working. */
@@ -51,6 +64,16 @@ const HOLD_FRACTION = 0.85;
 const MIN_REP_CONFIDENCE = 0.6;
 /** Floor for the start/return thresholds, so tiny targets stay above noise. */
 const MIN_THRESHOLD_DEG = 5;
+/**
+ * Attempts allowed beyond the target before the counter stops.
+ *
+ * Someone who falls short of the range on two movements should get to try
+ * again rather than being told the exercise is over. Someone whose first
+ * twenty movements all fall short has a problem the exercise cannot fix by
+ * continuing, and the practitioner is better served by a short honest record
+ * than by an unbounded one.
+ */
+export const ATTEMPT_ALLOWANCE = 2;
 
 export class RepCounter {
   private phase: RepPhase = "waiting";
@@ -60,6 +83,16 @@ export class RepCounter {
   private confidenceSamples: number[] = [];
   /** Set when tracking drops mid-repetition; the rep is reported unreliable. */
   private repTainted = false;
+  /**
+   * Whether the joint has been seen at rest yet.
+   *
+   * Until it has, no repetition can start. MediaPipe reports an angle from the
+   * very first frame, and if the person happens to be sitting past the start
+   * threshold — arm already out, or a resting angle in the definition that
+   * does not match this person — every subsequent wobble would otherwise look
+   * like the end of a repetition that never had a beginning.
+   */
+  private calibrated = false;
   /**
    * Whether this repetition's hold was actually completed. An exercise that
    * asks for a three-second hold is not done by touching the end position and
@@ -76,6 +109,19 @@ export class RepCounter {
 
   private get returnThreshold(): number {
     return Math.max(MIN_THRESHOLD_DEG, this.config.targetRomDeg * RETURN_FRACTION);
+  }
+
+  /** Whether the counter has recorded as much as it is ever going to. */
+  get isFull(): boolean {
+    return (
+      this.validRepCount >= this.config.targetReps ||
+      this.reps.length >= this.config.targetReps + ATTEMPT_ALLOWANCE
+    );
+  }
+
+  /** Whether a repetition may still begin. False before the joint is at rest. */
+  get isArmed(): boolean {
+    return this.calibrated;
   }
 
   /**
@@ -109,6 +155,11 @@ export class RepCounter {
 
     switch (this.phase) {
       case "waiting": {
+        // Seeing the joint near rest is what arms the counter.
+        if (progress < this.startThreshold) this.calibrated = true;
+
+        if (!this.calibrated || this.isFull) return null;
+
         if (progress >= this.startThreshold) {
           this.phase = "rising";
           this.peakProgress = progress;
@@ -221,6 +272,16 @@ export class RepCounter {
     this.repTainted = false;
     this.holdSatisfied = false;
     this.holdStartedAt = null;
+  }
+
+  /**
+   * Forget that the joint was ever seen at rest.
+   *
+   * Called after a long tracking loss: the body may be somewhere else now, and
+   * the next good frame should not be treated as the middle of a movement.
+   */
+  requireRecalibration(): void {
+    this.calibrated = false;
   }
 
   /** Seconds left on the current hold, or 0 when not holding. */

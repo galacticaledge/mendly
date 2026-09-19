@@ -24,7 +24,7 @@ import type {
   Level,
 } from "@/lib/contracts";
 import { getLevel } from "@/lib/exercises/catalog";
-import { ExerciseTracker } from "@/lib/cv/exerciseTracker";
+import { ExerciseTracker, requiredLandmarksFor } from "@/lib/cv/exerciseTracker";
 import { SafetyWatcher } from "@/lib/cv/safety";
 import { EnvironmentChecker, viewForPosture } from "@/lib/cv/environment";
 import { usePoseStream } from "@/lib/cv/usePoseStream";
@@ -73,7 +73,16 @@ export function MotorExercise({
   // Long-lived objects, rebuilt only when the exercise itself changes.
   const trackerRef = useRef<ExerciseTracker | null>(null);
   const watcherRef = useRef(new SafetyWatcher());
-  const checkerRef = useRef(new EnvironmentChecker(viewForPosture(exercise.posture)));
+  // The setup check verifies the landmarks this exercise measures, not just a
+  // generic view: a seated arm exercise passing a head-and-shoulders check with
+  // the arm out of frame was exactly how a session could report "camera ready"
+  // and then track nothing.
+  const checkerRef = useRef(
+    new EnvironmentChecker(
+      viewForPosture(exercise.posture),
+      requiredLandmarksFor(exercise, affectedSide),
+    ),
+  );
   const lastSafetyAtRef = useRef(0);
   const stageRef = useRef<Stage>("setup");
   const spokenRepRef = useRef(0);
@@ -155,13 +164,19 @@ export function MotorExercise({
       const state = tracker.update(frame, timestampMs);
       setLive(state);
 
-      // Say each completed repetition out loud, so the person does not have to
-      // look at the screen to know it counted.
-      if (state.reps > spokenRepRef.current) {
-        spokenRepRef.current = state.reps;
-        say(String(state.reps));
+      // Count out loud, so the person does not have to look at the screen to
+      // know it counted. Only movements that actually counted are spoken —
+      // saying a number for one that fell short would be a lie told in the
+      // most reassuring possible way.
+      if (state.validReps > spokenRepRef.current) {
+        spokenRepRef.current = state.validReps;
+        say(String(state.validReps));
       }
 
+      // `isComplete` also covers running out of attempts without meeting the
+      // target. That is still a finished exercise rather than one the patient
+      // abandoned, and the record carries valid_reps against target_reps, so
+      // the shortfall is visible without overstating what happened.
       if (tracker.isComplete) finish("completed");
     },
     [finish, live?.trackingValid, reportAlert, say],
@@ -196,7 +211,13 @@ export function MotorExercise({
     if (stage === "ready") say("When you are ready, say I'm ready, or press the button.");
   }, [stage, say]);
 
-  const reps = live?.reps ?? 0;
+  // The progress bar counts movements that met the range and the hold. The
+  // attempt count is shown separately when the two differ, rather than being
+  // mixed into one fraction — showing attempts against a target of valid reps
+  // is what let the display read "7 of 5 done".
+  const validReps = live?.validReps ?? 0;
+  const attempts = live?.reps ?? 0;
+  const shortAttempts = Math.max(0, attempts - validReps);
   const setupNeedsFullView = exercise.view === "full";
 
   return (
@@ -264,10 +285,18 @@ export function MotorExercise({
         <div className={styles.panel}>
           <ProgressBar
             label="Repetitions"
-            value={reps}
+            value={validReps}
             max={rung.reps}
-            valueText={`${reps} of ${rung.reps} done`}
+            valueText={`${validReps} of ${rung.reps} done`}
           />
+
+          {shortAttempts > 0 && (
+            <p className={`${styles.hint} body`}>
+              {shortAttempts === 1
+                ? "One movement did not reach far enough to count."
+                : `${shortAttempts} movements did not reach far enough to count.`}
+            </p>
+          )}
 
           <div className={styles.liveRow}>
             {live?.holdRemaining ? (

@@ -32,13 +32,29 @@ export class EnvironmentChecker {
   /** Counted separately so the advice can name the actual problem. */
   private missedLegs = 0;
   private outOfFrame = 0;
+  private readonly required: PoseLandmarkName[];
 
-  constructor(private readonly view: BodyView) {}
+  /**
+   * @param view     how much of the body the exercise needs in shot
+   * @param measured the landmarks this exercise actually measures
+   *
+   * Both matter, and checking only the first was a real bug: the "upper" view
+   * is the head and shoulders, so a seated arm exercise could pass the setup
+   * check with the arm entirely out of frame, tell the patient the camera was
+   * ready, and then fail to track anything. The check now has to see what is
+   * about to be measured.
+   */
+  constructor(
+    private readonly view: BodyView,
+    measured: PoseLandmarkName[] = [],
+  ) {
+    this.required = [...new Set([...REQUIRED[view], ...measured])];
+  }
 
   /** Feed a frame. Call for about two seconds before reading the result. */
   update(frame: PoseFrame): void {
     this.total += 1;
-    const required = REQUIRED[this.view];
+    const required = this.required;
 
     const allVisible = required.every((name) => isVisible(frame[name]));
     const allInFrame = required.every((name) => {
@@ -71,7 +87,10 @@ export class EnvironmentChecker {
       if (this.view === "full" && this.missedLegs >= this.outOfFrame) {
         advice = "Move the camera back, or set it further away, so your legs and feet are in the picture.";
       } else if (this.outOfFrame > 0) {
-        advice = "Move so your whole body is inside the picture.";
+        advice =
+          this.view === "full"
+            ? "Move so your whole body is inside the picture."
+            : "Move so your head, shoulders and the arm you are using are all in the picture.";
       } else {
         advice = "The camera cannot see you clearly. Try turning on a light or facing the camera.";
       }

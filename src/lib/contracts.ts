@@ -320,8 +320,23 @@ export type ExerciseResult = MotorResult | CognitiveResult;
 export type LiveTrackingState = {
   /** Current joint angle in degrees, after smoothing. Null while unknown. */
   angleDeg: number | null;
-  /** Repetitions counted so far this exercise. */
+  /**
+   * Movements counted so far, valid or not. This is the number of attempts,
+   * and it is NOT what the patient's progress is measured against.
+   */
   reps: number;
+  /**
+   * Movements that met the range and the hold, and were seen well enough.
+   * This is what the target is counted against and what the screen shows.
+   */
+  validReps: number;
+  /** The target for this level, so the UI never has to look it up itself. */
+  targetReps: number;
+  /**
+   * Set for a moment after a movement that did not count, so the screen can
+   * say why rather than leaving the number mysteriously unchanged.
+   */
+  lastRepCounted: boolean | null;
   /** Where the current repetition is in its cycle. */
   phase: "waiting" | "rising" | "holding" | "returning";
   /** Seconds remaining on a hold, when one is required. */
