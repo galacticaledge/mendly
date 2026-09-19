@@ -9,13 +9,27 @@
 
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { CATALOG, MOTOR_EXERCISES, estimateMinutes, getLevel } from "@/lib/exercises/catalog";
+import { CATALOG, MOTOR_EXERCISES, describeMotorPrescription, estimateMinutes, getLevel } from "@/lib/exercises/catalog";
 import { isMotor } from "@/lib/contracts";
 import type { Level } from "@/lib/contracts";
 
 test("every exercise id is unique", () => {
   const ids = CATALOG.map((exercise) => exercise.id);
   assert.equal(new Set(ids).size, ids.length);
+});
+
+test("motor prescription uses the selected level and omits a zero-second hold", () => {
+  const armRaise = MOTOR_EXERCISES.find((exercise) => exercise.id === "arm_raise")!;
+  assert.equal(
+    describeMotorPrescription(armRaise, 4),
+    "12 reps · Move through 70° at the shoulder · Hold for 2 seconds",
+  );
+  assert.equal(
+    describeMotorPrescription(armRaise, 2),
+    "8 reps · Move through 45° at the shoulder",
+  );
+  const proprioception = MOTOR_EXERCISES.find((exercise) => exercise.id === "proprioception_match")!;
+  assert.equal(describeMotorPrescription(proprioception, 3), "10 reps · Hold for 5 seconds");
 });
 
 test("every exercise has five levels, numbered 1 to 5", () => {

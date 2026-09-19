@@ -145,20 +145,25 @@ test("nothing is counted until the joint has been seen at rest", () => {
   assert.equal(reps.length, 1);
 });
 
-test("the counter stops recording once the allowance is spent", () => {
+test("short attempts remain recorded and do not prevent later valid reps", () => {
   const counter = armRaiseCounter(0, 3);
 
-  // Ten short movements against a target of three. Three attempts are allowed
-  // beyond the target at most, so recording must stop at five.
   let t = 0;
   for (let i = 0; i < 10; i += 1) {
     run(counter, cycle(35), 0.9, t);
     t += 2000;
   }
 
-  assert.ok(counter.isFull);
-  assert.ok(
-    counter.completedReps.length <= 5,
-    `recorded ${counter.completedReps.length} attempts against a target of 3`,
-  );
+  assert.equal(counter.completedReps.length, 10);
+  assert.equal(counter.validRepCount, 0);
+  assert.equal(counter.isFull, false);
+
+  for (let i = 1; i <= 3; i += 1) {
+    run(counter, cycle(80), 0.9, t);
+    t += 2000;
+    assert.equal(counter.validRepCount, i);
+    assert.equal(counter.isFull, i === 3);
+  }
+  run(counter, cycle(80), 0.9, t);
+  assert.equal(counter.completedReps.length, 13);
 });

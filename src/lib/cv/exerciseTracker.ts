@@ -316,11 +316,8 @@ export class ExerciseTracker {
   /**
    * Whether this exercise is over.
    *
-   * Either the level was completed, or the attempt allowance is spent. The
-   * second case matters: if the movement is never quite reaching the target —
-   * a tired patient, an awkward camera angle, a level set too high — the
-   * exercise has to end and say so, rather than counting upwards forever
-   * while the person keeps going.
+   * The level is complete only after the required valid repetitions. Short or
+   * unreliable attempts remain in the result but do not end the exercise.
    */
   get isComplete(): boolean {
     return this.counter.isFull;

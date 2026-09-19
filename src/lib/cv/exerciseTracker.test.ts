@@ -151,10 +151,7 @@ test("the count never runs past what the level asked for", () => {
     result.valid_reps <= target,
     `counted ${result.valid_reps} valid reps against a target of ${target}`,
   );
-  assert.ok(
-    result.reps.length <= target + 2,
-    `recorded ${result.reps.length} attempts against a target of ${target}`,
-  );
+  assert.equal(result.reps.length, target);
 });
 
 test("the exercise reports itself complete once the target is met", () => {
@@ -166,19 +163,34 @@ test("the exercise reports itself complete once the target is met", () => {
   assert.equal(tracker.isComplete, true);
 });
 
-test("an exercise that cannot be completed still ends", () => {
+test("failed attempts remain recorded without completing the exercise", () => {
   const tracker = armRaiseTracker();
 
-  // Every movement falls well short of the 45° target, so none of them are
-  // valid repetitions. Without a limit on attempts this runs forever.
+  // Every movement falls well short of the 45° target.
   let t = 0;
   for (let i = 0; i < 40; i += 1) {
     t = feed(tracker, sweep(32), t);
   }
 
-  assert.equal(tracker.isComplete, true, "an exercise nobody can complete must still end");
+  assert.equal(tracker.isComplete, false);
   const result = tracker.finish("stopped_early");
   assert.equal(result.valid_reps, 0);
+  assert.equal(result.reps.length, 40);
+  assert.ok(result.reps.every((rep) => !rep.valid));
+});
+
+test("valid repetitions complete the exercise even after many short attempts", () => {
+  const tracker = armRaiseTracker();
+  let t = 0;
+  for (let i = 0; i < 12; i += 1) t = feed(tracker, sweep(32), t);
+  for (let i = 1; i <= tracker.targetRepCount; i += 1) {
+    t = feed(tracker, sweep(70), t);
+    assert.equal(tracker.validRepCount, i);
+    assert.equal(tracker.isComplete, i === tracker.targetRepCount);
+  }
+  const result = tracker.finish();
+  assert.equal(result.reps.length, 12 + result.target_reps);
+  assert.equal(result.reps.filter((rep) => !rep.valid).length, 12);
 });
 
 test("starting already past the target does not mint a repetition", () => {
