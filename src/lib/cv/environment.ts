@@ -40,12 +40,16 @@ const REQUIRED: Record<BodyView, PoseLandmarkName[]> = {
 /** Fraction of sampled frames that must satisfy the view. */
 const PASS_FRACTION = 0.8;
 
+const SAMPLE_WINDOW = 60;
+
+type EnvironmentSample = {
+  passed: boolean;
+  missedLegs: boolean;
+  outOfFrame: boolean;
+};
+
 export class EnvironmentChecker {
-  private passed = 0;
-  private total = 0;
-  /** Counted separately so the advice can name the actual problem. */
-  private missedLegs = 0;
-  private outOfFrame = 0;
+  private readonly samples: EnvironmentSample[] = [];
   private readonly required: PoseLandmarkName[];
 
   /**
@@ -67,30 +71,16 @@ export class EnvironmentChecker {
 
   /** Feed a frame. Call for about two seconds before reading the result. */
   update(frame: PoseFrame): void {
-    this.total += 1;
     const required = this.required;
 
     const allVisible = required.every((name) => isVisible(frame[name]));
-    const invisible = required.filter((name) => !isVisible(frame[name]));
 
-    if (invisible.length > 0) {
-      // console.log(
-      //   "Environment check invisible landmarks:",
-      //   invisible.map((name) => ({
-      //     name,
-      //     visibility: frame[name]?.visibility,
-      //   })),
-      // );
-    }
     const allInFrame = required.every((name) => {
       const landmark = frame[name];
       return landmark !== undefined && isInFrame(landmark);
     });
 
-    if (allVisible && allInFrame) {
-      this.passed += 1;
-      return;
-    }
+    const passed = allVisible && allInFrame;
 
     const legsGone = [
       "left_knee",
@@ -98,24 +88,41 @@ export class EnvironmentChecker {
       "left_ankle",
       "right_ankle",
     ].some((name) => !isVisible(frame[name as PoseLandmarkName]));
-    if (legsGone) this.missedLegs += 1;
-    else if (!allInFrame) this.outOfFrame += 1;
+
+    this.samples.push({
+      passed,
+      missedLegs: !passed && legsGone,
+      outOfFrame: !passed && !legsGone && !allInFrame,
+    });
+
+    if (this.samples.length > SAMPLE_WINDOW) {
+      this.samples.shift();
+    }
   }
 
   get sampleCount(): number {
-    return this.total;
+    return this.samples.length;
   }
 
   result(): EnvironmentAssessment {
-    const confidence = this.total === 0 ? 0 : this.passed / this.total;
+    const total = this.samples.length;
+    const passed = this.samples.filter((sample) => sample.passed).length;
+    const missedLegs = this.samples.filter(
+      (sample) => sample.missedLegs,
+    ).length;
+    const outOfFrame = this.samples.filter(
+      (sample) => sample.outOfFrame,
+    ).length;
+
+    const confidence = total === 0 ? 0 : passed / total;
     const feasible = confidence >= PASS_FRACTION;
 
     let advice: string | null = null;
     if (!feasible) {
-      if (this.view === "full" && this.missedLegs >= this.outOfFrame) {
+      if (this.view === "full" && missedLegs >= outOfFrame) {
         advice =
           "Move the camera back, or set it further away, so your legs and feet are in the picture.";
-      } else if (this.outOfFrame > 0) {
+      } else if (outOfFrame > 0) {
         advice =
           this.view === "full"
             ? "Move so your whole body is inside the picture."
