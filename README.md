@@ -115,6 +115,28 @@ used, so hands-free operation still works with a plainer voice.
 | `ELEVENLABS_VOICE_ID` | `21m00Tcm4TlvDq8ikWAM` | Which voice speaks. Under Docker, set this explicitly whenever you set an API key: Compose passes an empty string through when it is unset, which is not the same as unset and defeats the default above. |
 | `ELEVENLABS_MODEL_ID` | `eleven_flash_v2_5` | The speech model. |
 
+### Checking a key works
+
+Both keys fail quietly on purpose — without ElevenLabs the browser speaks the
+prompts, without Backboard the rules engine drafts the set — so a key with a
+typo in it produces the same working app as a key that is right. The server log
+is where the difference shows. Each service reports its state the first time it
+is used and then only when that state changes, so one line tells you which mode
+you are actually in:
+
+```
+[mendly] Backboard: API key works — gemini-2.5-flash via google, 812 tokens in / 147 out
+[mendly] ElevenLabs: API key works — voice 21m00Tcm4TlvDq8ikWAM, first prompt in 604ms
+```
+
+The other two states read `no API key set` and `API key set, but the call
+failed`, the second with the status code and, once, the provider's own message.
+Backboard reports on the first proposal and ElevenLabs on the first spoken
+prompt, so start a session or request a proposal to see them.
+
+`npm run ai:models` checks the Backboard key on its own, without running the
+app, and prints the model identifiers the account can actually reach.
+
 ### Docker Compose only
 
 These are read by `docker-compose.yml` rather than by the app, so they do

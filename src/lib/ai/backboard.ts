@@ -29,6 +29,7 @@
  */
 
 import type { ExerciseSetProposal } from "@/lib/contracts";
+import { serviceLog } from "@/lib/serviceLog";
 import {
   buildPrompt,
   parseProposal,
@@ -68,8 +69,20 @@ const MEMORY_MODE = process.env.BACKBOARD_MEMORY ?? "Auto";
 /** How long to wait before giving up and letting the rules engine answer. */
 const TIMEOUT_MS = Number(process.env.BACKBOARD_TIMEOUT_MS ?? 30_000);
 
+/** Says whether the key is working, once per change. See serviceLog. */
+const report = serviceLog("Backboard");
+
+/**
+ * Whether the planner is available at all.
+ *
+ * This is where the caller decides between Backboard and the rules engine, so
+ * it is also where "no key" has to be said. Reporting it inside the call below
+ * would never be reached: the caller does not make the call.
+ */
 export function isBackboardConfigured(): boolean {
-  return Boolean(process.env.BACKBOARD_API_KEY);
+  const configured = Boolean(process.env.BACKBOARD_API_KEY);
+  if (!configured) report("absent", "the rules engine will draft every set");
+  return configured;
 }
 
 /** What the planner routed through, for the practitioner's review screen. */
@@ -111,7 +124,10 @@ export async function proposeWithBackboard(
   threadId: string | null,
 ): Promise<BackboardResult | null> {
   const apiKey = process.env.BACKBOARD_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    report("absent", "the rules engine will draft every set");
+    return null;
+  }
 
   // Backboard cannot enforce a response schema: `json_output` guarantees valid
   // JSON, not a particular shape. So the shape is asked for in the system
@@ -148,6 +164,7 @@ export async function proposeWithBackboard(
     });
 
     if (!response.ok) {
+      report("failing", `HTTP ${response.status} from ${ENDPOINT}`);
       console.error(
         "[mendly] Backboard returned",
         response.status,
@@ -159,9 +176,18 @@ export async function proposeWithBackboard(
     const payload = (await response.json()) as BackboardResponse;
 
     if (payload.status === "FAILED") {
+      report("failing", "Backboard accepted the key but the message failed");
       console.error("[mendly] Backboard reported a failed message:", payload);
       return null;
     }
+
+    // An answered message is the proof: the key authenticated, the provider
+    // and model names resolved, and something came back. Whether that content
+    // parses is a separate question, and not one about the key.
+    report(
+      "working",
+      `${MODEL} via ${PROVIDER}, ${payload.input_tokens ?? 0} tokens in / ${payload.output_tokens ?? 0} out`,
+    );
 
     const proposal = parseProposal(payload.content, "backboard");
     if (!proposal) return null;
@@ -175,8 +201,10 @@ export async function proposeWithBackboard(
   } catch (error) {
     const timedOut = error instanceof Error && error.name === "AbortError";
     if (timedOut) {
+      report("failing", `no answer within ${TIMEOUT_MS}ms`);
       console.error(`[mendly] Backboard did not answer within ${TIMEOUT_MS}ms; falling back.`);
     } else {
+      report("failing", "the request did not complete");
       console.error("[mendly] Backboard proposal failed, falling back:", error);
     }
     return null;
