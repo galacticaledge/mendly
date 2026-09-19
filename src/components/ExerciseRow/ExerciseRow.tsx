@@ -1,5 +1,4 @@
 import { Check } from "lucide-react";
-import type { ExerciseStatus } from "@/lib/mock-data";
 import styles from "./ExerciseRow.module.css";
 
 type ExerciseRowProps = {
@@ -7,7 +6,7 @@ type ExerciseRowProps = {
   number: number;
   name: string;
   detail: string;
-  status: ExerciseStatus;
+  status: "pending" | "complete";
 };
 
 /** One exercise as a list row. Render inside an <ol> or <ul>. */

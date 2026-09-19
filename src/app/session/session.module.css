@@ -1,0 +1,136 @@
+.main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5) var(--space-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.topline {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.voiceToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--brand);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--brand-deep);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.voiceToggle:hover { background: var(--brand-wash); }
+
+/* A full-width block for one step of the session. Not the session card: the
+   card is the dashboard's one lifted element, and this is a whole screen. */
+.panelWide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding: var(--space-6);
+  background: var(--surface-raised);
+  border-radius: var(--radius-md);
+}
+
+.exercise { display: flex; flex-direction: column; gap: var(--space-6); }
+
+.exerciseHead { display: flex; flex-direction: column; gap: var(--space-2); }
+.exerciseHead p:first-child { color: var(--ink-muted); text-transform: uppercase; margin: 0; }
+.exerciseHead h1, .exerciseHead h2 { margin: 0; }
+.instruction { margin: 0; color: var(--ink); }
+
+/* ---- The camera ---- */
+
+.stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+/* Mirrored so moving the right arm moves the arm on the right of the screen.
+   The overlay is inside the same box, so it flips with the video. */
+.mirror { position: absolute; inset: 0; transform: scaleX(-1); }
+
+.video, .overlay { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.cameraState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--ink);
+  background: var(--surface-sunken);
+}
+
+.cameraState p { margin: 0; }
+
+.liveRow { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.guidance { margin: 0; color: var(--ink); }
+.advice { display: flex; align-items: center; gap: var(--space-3); margin: 0; }
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border-radius: var(--radius-sm);
+}
+
+.notes span { color: var(--ink-muted); text-transform: uppercase; }
+
+.hint { color: var(--ink-muted); margin: 0; }
+
+.questions { display: flex; flex-direction: column; gap: var(--space-7); width: 100%; }
+
+.error {
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--accent-deep);
+  background: var(--accent-wash);
+  border-radius: var(--radius-sm);
+}
+
+.homeLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--brand);
+  border-radius: var(--radius-md);
+  color: var(--brand-deep);
+  text-decoration: none;
+}
+
+.homeLink:hover { background: var(--brand-wash); }
+
+@media (max-width: 600px) {
+  .topline { flex-direction: column; align-items: stretch; }
+}

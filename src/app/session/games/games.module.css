@@ -1,0 +1,89 @@
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  align-items: stretch;
+}
+
+.prompt { margin: 0; color: var(--ink); }
+
+/* ---- Card pairs ---- */
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 4), 1fr);
+  gap: var(--space-3);
+}
+
+.card {
+  min-height: 96px;
+  padding: var(--space-3);
+  border: 2px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.card:hover:not(:disabled) { background: var(--brand-wash); }
+.cardUp { background: var(--surface-raised); }
+/* A found pair is marked by the word staying visible and the fill changing;
+   the word is what carries the state. */
+.cardMatched { background: var(--brand-wash); border-color: var(--brand-deep); cursor: default; }
+
+/* ---- Odd one out ---- */
+
+.symbolRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+}
+
+.symbol {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 2px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.symbol:hover { background: var(--brand-wash); }
+
+/* ---- Word list ---- */
+
+.wordList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+  padding: var(--space-6);
+  list-style: none;
+  background: var(--surface-raised);
+  border-radius: var(--radius-md);
+}
+
+.word { color: var(--ink); }
+
+.wordChoices { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.wordChoice {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.wordChoice:hover { background: var(--brand-wash); }
+.wordChosen { background: var(--brand); border-color: var(--brand-deep); color: var(--inverse); }
