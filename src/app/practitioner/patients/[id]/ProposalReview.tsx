@@ -88,7 +88,7 @@ export function ProposalReview({
 
       <p className={`${styles.summary} body-lg`}>{summary}</p>
       <p className={`${styles.muted} body-sm`}>
-        Drafted by {source === "gemini" ? "the planning model" : "the local rules engine"}. Nothing
+        Drafted by {source === "backboard" ? "Gemini via Backboard" : "the local rules engine"}. Nothing
         here reaches {"the patient"} until you approve it.
       </p>
 

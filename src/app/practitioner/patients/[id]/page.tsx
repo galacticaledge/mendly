@@ -192,7 +192,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
                 <span className="body">
                   {new Date(set.created_at).toLocaleDateString("en-GB")} ·{" "}
                   {(set.approved_exercises ?? set.proposed_exercises).length} exercises · drafted by{" "}
-                  {set.ai_source === "gemini" ? "the model" : "the rules engine"}
+                  {set.ai_source === "backboard" ? "Gemini via Backboard" : "the rules engine"}
                 </span>
                 <StatusTag
                   tone={

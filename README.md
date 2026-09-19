@@ -12,7 +12,7 @@ without the AI ever deciding a patient's rehabilitation on its own.
 ```
 Practitioner defines the boundaries   (approved pool, level ceilings, exclusions)
             ↓
-AI proposes an exercise set           (Gemini, or the local rules engine)
+AI proposes an exercise set           (Gemini via Backboard, or the rules engine)
             ↓
 Guardrails validate the proposal      (anything outside the boundaries is removed)
             ↓
@@ -62,11 +62,35 @@ npm run dev
 
 Both are optional, and the product is fully usable without either.
 
-- `GEMINI_API_KEY` — the planning model. Without it, sets are drafted by the
-  local rules engine, which is deterministic and needs no network.
+- `BACKBOARD_API_KEY` — the LLM service, routed to Gemini. Without it, sets are
+  drafted by the local rules engine, which is deterministic and needs no
+  network. Run `npm run ai:models` to see which Gemini identifiers your account
+  can reach before setting `BACKBOARD_MODEL`.
 - `ELEVENLABS_API_KEY` — the spoken prompts. Without it, the browser's own
   speech synthesis is used, so hands-free operation still works with a plainer
   voice.
+
+## The planner
+
+There is one LLM client: **Backboard**, routed to Gemini. Mendly does not talk
+to Google directly and does not keep its own store of what the planner has said
+before — Backboard holds the planner's conversation and memory, which is the
+reason it is in the architecture at all. Each patient has one long-running
+Backboard thread, so the planner builds on its previous drafts for that person
+instead of starting cold every session. The thread id is the only part of that
+memory Mendly stores, on the patient row.
+
+What is still sent on every call, rather than trusted to memory, is the current
+practitioner rules and the measured performance. Those are clinical facts a
+practitioner audits, they change between sessions, and our database is their
+source of truth. Memory carries continuity of reasoning; it does not carry the
+numbers.
+
+Backboard cannot enforce a response schema — its `json_output` guarantees valid
+JSON, not a particular shape — so the shape is asked for in the system prompt
+and checked on the way back by `parseProposal`, which has its own tests. A reply
+that cannot be parsed is treated like an outage: the rules engine drafts the set
+and the patient still gets a session.
 
 ## How the guardrails actually work
 
@@ -155,8 +179,8 @@ down quickly, bending over, and leaving the room.
 
 ## Stack
 
-Next.js 16 · React 19 · TimescaleDB (TigerData) · MediaPipe Pose · Gemini ·
-ElevenLabs · Docker Compose
+Next.js 16 · React 19 · TimescaleDB (TigerData) · MediaPipe Pose ·
+Backboard (Gemini) · ElevenLabs · Docker Compose
 
 CSS is written against the design tokens in `src/styles/tokens.css`; there is no
 component library. See `CLAUDE.md` for why the palette is what it is and what
@@ -172,3 +196,9 @@ the rules around it are.
 - The catalog is seven motor and three cognitive exercises. Wrist and finger
   work would need MediaPipe's hand landmarker, which is not wired up.
 - Nothing here is a medical device, and no part of it is clinically validated.
+- Patient data reaches Backboard. The planning prompt contains a named
+  patient's history, goals and measured performance, and with
+  `BACKBOARD_MEMORY=Auto` that content is retained in Backboard's memory store
+  as well as ours. That is a data-residency and processor-agreement decision
+  for whoever deploys this, not just a config value; `BACKBOARD_MEMORY=off`
+  turns the retention off at the cost of the planner's continuity.

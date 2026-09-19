@@ -50,3 +50,5 @@ next-env.d.ts
 # Local dev env
 .env
 .env.local
+
+graphify-out

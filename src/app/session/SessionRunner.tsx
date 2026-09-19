@@ -32,11 +32,13 @@ import { Button } from "@/components/Button/Button";
 import { Choice } from "@/components/Choice/Choice";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
-import { useSpeech, useVoiceCommand, isVoiceInputAvailable } from "@/lib/voice/useVoice";
+import { useSpeech, useVoiceCommand } from "@/lib/voice/useVoice";
+import { VoiceCue } from "./VoiceCue";
 import { MotorExercise } from "./MotorExercise";
 import { CardMatch } from "./games/CardMatch";
 import { SymbolSort } from "./games/SymbolSort";
 import { WordRecall } from "./games/WordRecall";
+import { MathDrill } from "./games/MathDrill";
 import styles from "./session.module.css";
 
 type PlanItem = {
@@ -97,8 +99,11 @@ export function SessionRunner({
     setStage("exercise");
   }, [stage]);
 
-  useVoiceCommand(["i'm ready", "im ready", "i am ready", "start"], begin, {
-    enabled: voiceEnabled && stage === "intro",
+  // Listening is not tied to the speaking toggle. That toggle turns the spoken
+  // prompts off, which someone may want in a quiet room; it is not a reason to
+  // take away the way they drive the session.
+  const introVoice = useVoiceCommand(["im ready", "i am ready", "lets start", "start now"], begin, {
+    enabled: stage === "intro",
   });
 
   useEffect(() => {
@@ -146,8 +151,8 @@ export function SessionRunner({
     setStage("exercise");
   }, [index, remaining.length]);
 
-  useVoiceCommand(["next", "carry on", "keep going", "continue"], next, {
-    enabled: voiceEnabled && stage === "between",
+  const betweenVoice = useVoiceCommand(["next", "carry on", "keep going", "continue"], next, {
+    enabled: stage === "between",
   });
 
   /* ---------------- Finishing ---------------- */
@@ -238,11 +243,7 @@ export function SessionRunner({
               {practitionerNotes}
             </p>
           )}
-          {isVoiceInputAvailable() && voiceEnabled && (
-            <p className={`${styles.hint} body`}>
-              You can say &ldquo;I&apos;m ready&rdquo; instead of pressing the button.
-            </p>
-          )}
+          <VoiceCue status={introVoice.status} phrase="I'm ready" />
           <Button variant="primary" icon={ArrowRight} onClick={begin}>
             I&apos;m ready
           </Button>
@@ -258,7 +259,6 @@ export function SessionRunner({
             affectedSide={affectedSide}
             sessionId={sessionId}
             say={say}
-            voiceEnabled={voiceEnabled}
             onFinish={(result: MotorResult) => void submitResult(result)}
           />
         ) : (
@@ -294,6 +294,7 @@ export function SessionRunner({
               )}
             </p>
           )}
+          <VoiceCue status={betweenVoice.status} phrase="next" />
           <Button variant="primary" icon={ArrowRight} onClick={next}>
             {index + 1 >= remaining.length ? "Finish up" : "Next exercise"}
           </Button>
@@ -395,6 +396,18 @@ function CognitiveGame({
           level={level}
           rounds={rung.rounds}
           size={rung.size}
+          say={say}
+          onFinish={onFinish}
+        />
+      );
+    case "math-drill":
+      return (
+        <MathDrill
+          exerciseId={exercise.id}
+          level={level}
+          rounds={rung.rounds}
+          size={rung.size}
+          secondsPerRound={rung.secondsPerRound}
           say={say}
           onFinish={onFinish}
         />
