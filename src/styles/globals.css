@@ -10,6 +10,11 @@ body { background: var(--canvas); color: var(--ink-900); font: var(--text-body);
    .rs-focusable: this app is driven by keyboard and switch access. */
 :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
+/* focus-ring is ink-900, which all but vanishes on teal-900. On teal grounds the
+   ring is drawn in on-teal instead, keeping it well over 3:1. */
+.rs-topnav :focus-visible,
+[data-ground="teal"] :focus-visible { outline-color: var(--on-teal); }
+
 /* bundle.css draws the text button at 44px. Every target here is at least 48px. */
 .rs-btn-text { min-height: 48px; }
 

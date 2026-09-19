@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
 import { getPatient, getPractitioner } from "@/lib/db/queries";
+import { ProfileScope } from "@/components/ProfileScope/ProfileScope";
 import { TopNav } from "@/components/TopNav/TopNav";
 import { PATIENT_NAV } from "@/lib/nav";
 import styles from "../page.module.css";
@@ -10,16 +11,16 @@ export const metadata = { title: "Care team — Mendly" };
 /** Who is looking after you, and what they can see. */
 export default async function CareTeamPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
   if (user.role !== "patient") redirect("/practitioner");
 
   const patient = await getPatient(user.id);
-  if (!patient) redirect("/login");
+  if (!patient) redirect("/sign-in");
   const practitioner = await getPractitioner(patient.practitioner_id);
 
   return (
-    <>
-      <TopNav items={PATIENT_NAV} activeHref="/care-team" />
+    <ProfileScope profile={patient.ui_profile}>
+      <TopNav items={PATIENT_NAV} activeHref="/care-team" icons={patient.ui_profile === "aphasia"} />
       <main className={styles.main}>
         <div className={styles.greeting}>
           <h1 className={`${styles.welcome} display`}>Your care team</h1>
@@ -49,6 +50,6 @@ export default async function CareTeamPage() {
           </p>
         </section>
       </main>
-    </>
+    </ProfileScope>
   );
 }

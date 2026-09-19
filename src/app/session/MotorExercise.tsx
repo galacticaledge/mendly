@@ -224,7 +224,7 @@ export function MotorExercise({
     <section className={styles.exercise} aria-labelledby="exercise-title">
       <div className={styles.exerciseHead}>
         <p className="caption">{exercise.posture === "standing" ? "Standing" : "Seated"}</p>
-        <h2 id="exercise-title" className="h1">
+        <h2 id="exercise-title" className="display">
           {exercise.name}
         </h2>
         <p className={`${styles.instruction} body-lg`}>{exercise.instruction}</p>

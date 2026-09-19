@@ -60,3 +60,6 @@
 .errorIcon {
   flex-shrink: 0;
 }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) .input { min-height: var(--space-8); }

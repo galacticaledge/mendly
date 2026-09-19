@@ -19,6 +19,7 @@ import type {
   ProposedExercise,
   SafetyAlert,
   SessionAnswer,
+  UiProfile,
 } from "@/lib/contracts";
 
 /* ---------------------------------------------------------------- */
@@ -44,6 +45,7 @@ export type PatientRow = {
   affected_side: "left" | "right" | "both";
   diagnosis_date: Date | null;
   history: string;
+  ui_profile: UiProfile;
 };
 
 export function findPractitionerByEmail(email: string) {

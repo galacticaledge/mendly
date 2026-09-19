@@ -6,6 +6,7 @@ import { Poppins, Public_Sans } from "next/font/google";
 import "@/styles/bundle.css";
 import "@/styles/tokens.css";
 import "@/styles/globals.css";
+import "@/styles/profiles.css";
 
 // Each declares its family's variable on <body>, overriding the stacks in
 // tokens.css. They sit on <body>, not <html>: the font class and tokens.css's

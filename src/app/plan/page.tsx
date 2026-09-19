@@ -5,6 +5,7 @@ import { getExercise, getLevel, TAG_LABELS } from "@/lib/exercises/catalog";
 import { isMotor } from "@/lib/contracts";
 import { DEFAULT_RULES } from "@/lib/ai/propose";
 import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
+import { ProfileScope } from "@/components/ProfileScope/ProfileScope";
 import { TopNav } from "@/components/TopNav/TopNav";
 import { PATIENT_NAV } from "@/lib/nav";
 import styles from "../page.module.css";
@@ -20,18 +21,18 @@ export const metadata = { title: "My plan — Mendly" };
  */
 export default async function PlanPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
   if (user.role !== "patient") redirect("/practitioner");
 
   const patient = await getPatient(user.id);
-  if (!patient) redirect("/login");
+  if (!patient) redirect("/sign-in");
 
   const [set, rulesRow] = await Promise.all([getDeliverableSet(user.id), getCurrentRules(user.id)]);
   const rules = rulesRow?.payload ?? DEFAULT_RULES;
 
   return (
-    <>
-      <TopNav items={PATIENT_NAV} activeHref="/plan" />
+    <ProfileScope profile={patient.ui_profile}>
+      <TopNav items={PATIENT_NAV} activeHref="/plan" icons={patient.ui_profile === "aphasia"} />
       <main className={styles.main}>
         <div className={styles.greeting}>
           <h1 className={`${styles.welcome} display`}>Your plan</h1>
@@ -108,6 +109,6 @@ export default async function PlanPage() {
           </p>}
         </section>
       </main>
-    </>
+    </ProfileScope>
   );
 }

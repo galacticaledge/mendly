@@ -15,6 +15,7 @@ import { CATALOG, getExercise, getLevel, TAG_LABELS } from "@/lib/exercises/cata
 import { DEFAULT_RULES } from "@/lib/ai/propose";
 import { weeksSince } from "@/lib/dates";
 import { AlertCard } from "@/components/AlertCard/AlertCard";
+import { UI_PROFILE_LABELS } from "@/components/ProfileScope/ProfileScope";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { ProposalReview } from "./ProposalReview";
 import { RulesEditor } from "./RulesEditor";
@@ -51,7 +52,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
         <Link href="/practitioner" className={`${styles.back} label`}>
           Back to caseload
         </Link>
-        <h1 className="h1">
+        <h1 className="display">
           {patient.first_name} {patient.last_name}
         </h1>
         <p className={`${styles.muted} body-lg`}>
@@ -59,6 +60,9 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
           {patient.diagnosis_date && ` · ${weeksSince(patient.diagnosis_date)} weeks since diagnosis`}
         </p>
         {patient.history && <p className={`${styles.history} body`}>{patient.history}</p>}
+        <p className={`${styles.muted} body`}>
+          Sees the {UI_PROFILE_LABELS[patient.ui_profile].toLowerCase()} interface
+        </p>
       </header>
 
       {/* The review step, first on the page: it is the thing that needs doing. */}

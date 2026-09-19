@@ -61,6 +61,9 @@ export type PoseFrame = Partial<Record<PoseLandmarkName, Landmark>>;
 /** Cognitive exercises run at the screen. Motor exercises need the camera. */
 export type Modality = "cognitive" | "motor";
 
+/** Which version of the patient interface a person sees. Set on the account. */
+export type UiProfile = "standard" | "aphasia" | "motor_visual";
+
 /** What the patient's body is doing. Standing needs practitioner permission. */
 export type Posture = "seated" | "standing";
 

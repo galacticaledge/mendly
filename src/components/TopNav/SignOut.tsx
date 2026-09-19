@@ -15,7 +15,7 @@ export function SignOut() {
         // this reads the session cookie on the server, and a client route
         // change would leave the signed-in pages cached in the router.
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = "/login";
+        window.location.href = "/sign-in";
       }}
     >
       <LogOut size={20} aria-hidden="true" />

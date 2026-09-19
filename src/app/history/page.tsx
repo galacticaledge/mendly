@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { countCompletedSessions, listRecentResults } from "@/lib/db/queries";
+import { countCompletedSessions, getPatient, listRecentResults } from "@/lib/db/queries";
 import { getExercise } from "@/lib/exercises/catalog";
+import { ProfileScope } from "@/components/ProfileScope/ProfileScope";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
 import { TopNav } from "@/components/TopNav/TopNav";
 import { PATIENT_NAV } from "@/lib/nav";
@@ -17,17 +18,19 @@ export const metadata = { title: "History — Mendly" };
  */
 export default async function HistoryPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
   if (user.role !== "patient") redirect("/practitioner");
 
-  const [results, sessions] = await Promise.all([
+  const [results, sessions, patient] = await Promise.all([
     listRecentResults(user.id, 30),
     countCompletedSessions(user.id),
+    getPatient(user.id),
   ]);
+  const profile = patient?.ui_profile ?? "standard";
 
   return (
-    <>
-      <TopNav items={PATIENT_NAV} activeHref="/history" />
+    <ProfileScope profile={profile}>
+      <TopNav items={PATIENT_NAV} activeHref="/history" icons={profile === "aphasia"} />
       <main className={styles.main}>
         <div className={styles.greeting}>
           <h1 className={`${styles.welcome} display`}>What you have done</h1>
@@ -77,6 +80,6 @@ export default async function HistoryPage() {
           )}
         </section>
       </main>
-    </>
+    </ProfileScope>
   );
 }

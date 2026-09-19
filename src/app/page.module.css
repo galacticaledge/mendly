@@ -7,6 +7,33 @@
   gap: var(--space-7);
 }
 
+/* Today: two columns on a wide screen, the session on the left as the focal
+   point, the week and today's exercises on the right. Matches the wide nav. */
+.today {
+  max-width: 1080px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-7) var(--space-8);
+  padding-top: var(--space-7);
+}
+
+.focus,
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.aside { gap: var(--space-7); }
+
+/* The card fills its column so its right edge lines up with everything else. */
+.today :global(.rs-session-card) { max-width: none; }
+
+@media (max-width: 900px) {
+  .today { grid-template-columns: minmax(0, 1fr); }
+}
+
 .greeting {
   display: flex;
   flex-direction: column;
@@ -67,3 +94,6 @@
 .note span {
   color: var(--teal-900);
 }
+
+/* Aphasia-friendly profile: more room between sections. See profiles.css. */
+:global([data-profile="aphasia"]) .main { gap: var(--space-8); }

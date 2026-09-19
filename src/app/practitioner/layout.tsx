@@ -13,7 +13,7 @@ import { PractitionerNav } from "./PractitionerNav";
  */
 export default async function PractitionerLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/sign-in");
   if (user.role !== "practitioner") redirect("/");
 
   return (

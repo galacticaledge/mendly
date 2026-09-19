@@ -1,35 +1,79 @@
-.main {
+/* Two panels, full height: the brand on teal-900, the form on canvas. Below
+   900px the teal panel becomes a short band above the form. */
+.split {
   min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: var(--space-6) var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
-.panel {
+.brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: var(--teal-900);
+  color: var(--on-teal);
+}
+
+.wordmark {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  color: var(--on-teal);
+  text-decoration: none;
+}
+
+.wordmark:hover { text-decoration: underline; }
+
+.tagline,
+.about { margin: 0; }
+.about { max-width: 28rem; }
+
+.formPanel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-5);
+}
+
+.formInner {
   width: 100%;
   max-width: 440px;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-6);
-  background: var(--surface-raised);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-resting);
 }
 
-.wordmark { color: var(--teal-700); margin: 0; }
 .title { color: var(--ink-900); margin: 0; }
-.intro { color: var(--ink-600); margin: 0 0 var(--space-3); }
+.intro { color: var(--ink-700); margin: 0 0 var(--space-2); }
 
 .form { display: flex; flex-direction: column; gap: var(--space-5); }
 
-.error {
+.error { margin: 0; }
+
+/* The live region stays in the page so an error is always announced; while it
+   is empty it gives back the form gap it would otherwise add. */
+.live:empty { margin-bottom: calc(-1 * var(--space-5)); }
+
+.actions {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin: 0;
-  padding: var(--space-4);
-  color: var(--coral-700);
-  background: var(--coral-100);
-  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.reset { margin: 0; color: var(--ink-900); }
+
+.demo {
+  margin: var(--space-5) 0 0;
+  color: var(--ink-600);
+}
+
+@media (max-width: 900px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .brand { padding: var(--space-5); gap: var(--space-1); }
+  .about { display: none; }
+  .formPanel { align-items: flex-start; padding: var(--space-7) var(--space-5); }
 }

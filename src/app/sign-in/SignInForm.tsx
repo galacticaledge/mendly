@@ -4,13 +4,14 @@ import { useState } from "react";
 import { OctagonAlert } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Input } from "@/components/Input/Input";
-import styles from "./login.module.css";
+import styles from "./signIn.module.css";
 
-export function LoginForm() {
+export function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showReset, setShowReset] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -41,6 +42,16 @@ export function LoginForm() {
 
   return (
     <form onSubmit={submit} className={styles.form}>
+      {/* Above the fields, so the reason is the first thing read on a retry. */}
+      <div aria-live="assertive" className={styles.live}>
+        {error && (
+          <p className={`rs-alert rs-alert-attention ${styles.error} body`} role="alert">
+            <OctagonAlert size={24} aria-hidden="true" className="rs-alert-icon" />
+            {error}
+          </p>
+        )}
+      </div>
+
       <Input
         label="Email"
         type="email"
@@ -58,16 +69,21 @@ export function LoginForm() {
         onChange={(event) => setPassword(event.target.value)}
       />
 
-      {error && (
-        <p className={`${styles.error} body`} role="alert">
-          <OctagonAlert size={24} aria-hidden="true" />
-          {error}
+      <div className={styles.actions}>
+        <Button variant="primary" type="submit" disabled={busy}>
+          {busy ? "Signing in" : "Sign in"}
+        </Button>
+        {/* There is no self-service reset: accounts are set up by the care
+            team, so this says who to ask rather than starting a flow. */}
+        <Button variant="text" aria-expanded={showReset} onClick={() => setShowReset((open) => !open)}>
+          Forgot password
+        </Button>
+      </div>
+      {showReset && (
+        <p className={`${styles.reset} body`}>
+          Ask whoever set up your account to reset it. For patients, that is your care team.
         </p>
       )}
-
-      <Button variant="featured" type="submit" disabled={busy}>
-        {busy ? "Signing in" : "Sign in"}
-      </Button>
     </form>
   );
 }

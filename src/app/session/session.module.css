@@ -133,3 +133,9 @@
 @media (max-width: 600px) {
   .topline { flex-direction: column; align-items: stretch; }
 }
+
+/* Motor and visual-friendly profile: 64px targets. See profiles.css. */
+:global([data-profile="motor_visual"]) :is(.voiceToggle, .homeLink) { min-height: var(--space-8); }
+
+/* Aphasia-friendly profile: more room between steps. See profiles.css. */
+:global([data-profile="aphasia"]) .main { gap: var(--space-8); }

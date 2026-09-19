@@ -38,7 +38,7 @@ Test for any screen: delete coral from it entirely. It should still read as calm
 
 ## Typography
 
-Families as `tokens.json` names them: Poppins for `display`, `h2`, `h3`, the body styles and the labels; Times New Roman for `h1`; Public Sans (`--font-sans`) for `.rs-btn`, which loses the tie to `.label`. Poppins and Public Sans load through `next/font` in `layout.tsx`, at weights 400 and 600 only. Times New Roman is a system font and is not loaded.
+Families as `tokens.json` names them: Poppins for `display`, `h2`, `h3`, the body styles and the labels; Times New Roman for `h1`, which is why no page uses `.h1`: page headings use `.display` so no serif heading appears in a sans product; Public Sans (`--font-sans`) for `.rs-btn`, which loses the tie to `.label`. Poppins and Public Sans load through `next/font` in `layout.tsx`, at weights 400 and 600 only. Times New Roman is a system font and is not loaded.
 
 Apply the type classes from `tokens.css` (`.display`, `.h1`, `.h2`, `.h3`, `.body-lg`, `.body`, `.body-sm`, `.caption`, `.label`, `.label-sm`). Never set an ad hoc font-size.
 
@@ -48,7 +48,7 @@ Apply the type classes from `tokens.css` (`.display`, `.h1`, `.h2`, `.h3`, `.bod
 
 ## Layout
 
-Single column wherever possible, `max-width` around 720px for reading content. Spacing is the structuring device: reach for a larger `space-*` step before a border, a tint or a container. `--space-7`/`--space-8` between sections. Do not turn every piece of information into a card. No cards nested in cards, no card grids, no colored left borders.
+Single column wherever possible, `max-width` around 720px for reading content. Today is the exception: 1080px, two columns (session on the left, week and today's exercises on the right) so all four answers sit above the fold, stacking below 900px. Spacing is the structuring device: reach for a larger `space-*` step before a border, a tint or a container. `--space-7`/`--space-8` between sections. Do not turn every piece of information into a card. No cards nested in cards, no card grids, no colored left borders.
 
 ## Motion
 
@@ -82,9 +82,23 @@ Do not add components speculatively. No Toast, Avatar, Tabs, Modal, Skeleton or 
 - `.rs-btn-text` raised from 44px to 48px.
 - TopNav active underline `on-teal` instead of `coral-500`.
 
+## Interface profiles
+
+Each patient account has a `ui_profile` (`patients.ui_profile`): `standard`, `aphasia` or `motor_visual`. Every patient page wraps itself, nav included, in `ProfileScope`, which sets `data-profile`. One set of components serves all three; never fork a component per profile.
+
+- `standard` is the design system as drawn. It has no rules.
+- `aphasia`: type one step up, more room between sections, an icon beside nav labels and section headings, and shorter copy (numbers, not clauses). Copy changes live in the page, keyed off the profile.
+- `motor_visual`: type one step up, 64px (`space-8`) full-width targets, `ink-600`/`ink-700` re-pointed to `ink-900`, dividers drawn in `border-control`.
+
+Global adaptations are in `src/styles/profiles.css`. Styles owned by a component module adapt in that module with `:global([data-profile="..."])`. Profiles re-use existing tokens only; they never add a value. The practitioner patient page shows which interface a patient sees.
+
 ## The practitioner side
 
 Everything under `/practitioner` is a working tool rather than a calm surface: someone scanning a caseload between appointments needs density the patient app deliberately refuses. It is wider (1080px, with `TopNav wide`), uses tables, and puts several things on a screen. It uses the same tokens throughout, and the rules that exist for access rather than for calm (48px targets, focus rings, status never by color alone) apply there unchanged.
+
+## Routes
+
+`/` is Today for a signed-in patient and the public landing page (`src/app/Landing.tsx`) for anyone signed out. The sign-in form lives at `/sign-in`; `/login` permanently redirects there. Every protected page redirects a signed-out visitor to `/sign-in`. On teal grounds (the nav, the sign-in brand panel, marked `data-ground="teal"`) the focus ring is drawn in `on-teal`, since `ink-900` vanishes on `teal-900`.
 
 ## The dashboard
 
