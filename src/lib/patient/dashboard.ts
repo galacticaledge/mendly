@@ -39,12 +39,6 @@ export type PatientDashboard = {
   sessionsThisWeek: number;
   sessionsCompletedAllTime: number;
   lastResults: { exerciseId: string; name: string; line: string; at: Date }[];
-  /**
-   * Sessions finished this week, newest first. `note` is the care team's note
-   * on the set the session came from, given only on the newest session from
-   * each set so the same note is not repeated row after row.
-   */
-  finishedThisWeek: { id: string; dayLabel: string; exercises: number; note: string }[];
 };
 
 const DAY_MS = 864e5;
@@ -101,18 +95,6 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
 
   const recent = await listRecentResults(patientId, 6);
 
-  const noted = new Set<string>();
-  const finishedThisWeek = finished.map((row) => {
-    const first = !noted.has(row.exercise_set_id);
-    noted.add(row.exercise_set_id);
-    return {
-      id: row.id,
-      dayLabel: label(new Date(row.started_at)),
-      exercises: row.exercises,
-      note: first ? row.practitioner_notes.trim() : "",
-    };
-  });
-
   return {
     firstName: patient.first_name,
     uiProfile: patient.ui_profile,
@@ -127,7 +109,6 @@ export async function loadDashboard(patientId: string): Promise<PatientDashboard
       line: resultLine(row.payload),
       at: row.time,
     })),
-    finishedThisWeek,
   };
 }
 
