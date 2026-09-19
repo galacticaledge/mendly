@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OMC tooling
+.omc
+
+# Computer-vision assets, fetched by scripts/fetch-cv-assets.mjs
+/public/mediapipe
+/public/models
+
+# Local dev env
+.env
+.env.local

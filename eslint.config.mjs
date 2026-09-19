@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored MediaPipe wasm glue, copied in by scripts/fetch-cv-assets.mjs.
+    // It is generated third-party code and not ours to lint.
+    "public/**",
   ]),
 ]);
 
