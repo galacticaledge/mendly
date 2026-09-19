@@ -1,10 +1,9 @@
 # Mendly
 
 An AI-driven stroke rehabilitation platform. A practitioner sets the boundaries,
-an AI proposes exercise sets inside them, the practitioner approves or edits
-each set, the patient does it in front of a webcam, computer vision measures how
-it went, and the next set is drafted from those measurements — for the
-practitioner to review again.
+an AI proposes exercise sets inside them, the practitioner approves or edits each set, the patient does the set in front of a webcam, computer vision measures how
+it went, and the next set is drafted from those measurements. Finally, the
+practitioner reviews the set again.
 
 The loop is the product. Every part of this repository exists to keep it turning
 without the AI ever deciding a patient's rehabilitation on its own.
