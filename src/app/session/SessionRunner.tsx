@@ -40,6 +40,7 @@ import { CardMatch } from "./games/CardMatch";
 import { SymbolSort } from "./games/SymbolSort";
 import { WordRecall } from "./games/WordRecall";
 import { MathDrill } from "./games/MathDrill";
+import page from "../page.module.css";
 import styles from "./session.module.css";
 
 type PlanItem = {
@@ -266,7 +267,7 @@ export function SessionRunner({
 
   if (remaining.length === 0 && stage !== "done") {
     return (
-      <main className={styles.main}>
+      <main className={`${page.main} ${page.wide} ${styles.session}`}>
         <h1 className="display">You have already finished today&apos;s exercises</h1>
         <Button variant="featured" onClick={() => finishSession(false)}>
           Finish and answer a few questions
@@ -276,7 +277,7 @@ export function SessionRunner({
   }
 
   return (
-    <main className={styles.main}>
+    <main className={`${page.main} ${page.wide} ${styles.session}`}>
       <div className={styles.topline}>
         <ProgressBar
           label="Session"
@@ -367,7 +368,7 @@ export function SessionRunner({
       )}
 
       {stage === "questions" && (
-        <section className={styles.panelWide}>
+        <section className={`${styles.panelWide} ${styles.panelFull}`}>
           <h1 className="display">A few questions</h1>
           <p className="body-lg">
             {aphasia ? "For your care team. No wrong answers." : "These go to your care team. There are no wrong answers."}

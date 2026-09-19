@@ -296,7 +296,7 @@ export function MotorExercise({
   const hideFeedback = exercise.hideLiveFeedback === true;
 
   return (
-    <section className={styles.exercise} aria-labelledby="exercise-title">
+    <section className={`${styles.exercise} ${styles.withCamera}`} aria-labelledby="exercise-title">
       <div className={styles.exerciseHead}>
         <p className="caption">
           {exercise.posture === "standing" ? "Standing" : "Seated"}

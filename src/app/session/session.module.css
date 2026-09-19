@@ -1,10 +1,17 @@
-.main {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5) var(--space-9);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-7);
+/* The session uses the shared page column from page.module.css — the same
+   1080px, the same centering, the same top edge as every other route — rather
+   than declaring its own. It had its own, and the two drifted: this screen sat
+   in a 720px column with less top padding, so the whole page jumped sideways
+   and upwards on the way into a session.
+
+   This class carries only what differs. The rest of the app puts --space-7
+   between sections; a session is not a document to scroll. Someone mid-
+   exercise has their affected arm raised and cannot reach to scroll, so what
+   they need has to be on screen at once, and the trailing --space-9 is room
+   this screen does not have to give. */
+.session {
+  gap: var(--space-5);
+  padding-bottom: var(--space-6);
 }
 
 .topline {
@@ -68,14 +75,20 @@
 /* Wide enough for "0.75x" so the buttons do not shuffle as the number changes. */
 .speedValue { min-width: 5ch; text-align: center; color: var(--ink-900); }
 
-/* A full-width block for one step of the session. Not the session card: the
-   card is the dashboard's one lifted element, and this is a whole screen. */
+/* One step of the session, held to the reading measure. Not the session card:
+   the card is the dashboard's one lifted element, and this is a whole screen. */
 .panelWide {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-5);
+  max-width: 720px;
 }
+
+/* The closing questions are controls rather than prose, so they take the whole
+   column and sit two abreast. Four of them stacked at full width is the one
+   other place this screen used to run past the bottom of the viewport. */
+.panelFull { max-width: none; }
 
 /* The primary panel on the session screen, and the only card here that is its
    own surface: radius-lg and shadow-resting. Everything inside it is a control
@@ -91,18 +104,46 @@
   box-shadow: var(--shadow-resting);
 }
 
-.exercise { display: flex; flex-direction: column; gap: var(--space-6); }
+/* A cognitive exercise is a board and a prompt, and keeps the reading measure:
+   spreading a card game across the full column would only make it harder to
+   take in at a glance. */
+.exercise {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 720px;
+}
 
 .exerciseHead { display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* A motor exercise has a camera, and takes the whole column: picture on the
+   left, what to do and how it is going on the right. The same move the
+   dashboard makes for Today, and for the same reason — it is what lets all of
+   it sit above the fold on a laptop. Stacks below 900px, where there is no
+   width to spend. */
+.withCamera {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5) var(--space-6);
+  max-width: none;
+}
+
+/* The name of the exercise belongs to both columns. */
+.withCamera .exerciseHead { grid-column: 1 / -1; }
 .exerciseHead p:first-child { color: var(--ink-600); text-transform: uppercase; margin: 0; }
 .exerciseHead h1, .exerciseHead h2 { margin: 0; }
 .instruction { margin: 0; color: var(--ink-900); }
 
 /* ---- The camera ---- */
 
+/* Bounded by the height available as well as the width. Left to fill its
+   column the camera is 4:3 of whatever that column is, which on a short laptop
+   pushes the controls under it off the bottom — so the width is capped at
+   whatever keeps the picture inside 46% of the viewport's height. */
 .stage {
   position: relative;
-  width: 100%;
+  width: min(100%, calc(46dvh * 4 / 3));
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -168,7 +209,13 @@
   gap: var(--space-3);
 }
 
-.questions { display: flex; flex-direction: column; gap: var(--space-7); width: 100%; }
+.questions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5) var(--space-6);
+  width: 100%;
+}
 
 .error {
   margin: 0;
@@ -191,6 +238,14 @@
 
 .homeLink:hover { background: var(--teal-100); }
 
+/* The same breakpoint the dashboard stacks Today at, so the two screens change
+   shape together rather than at widths that look arbitrary beside each other. */
+@media (max-width: 900px) {
+  .withCamera { grid-template-columns: minmax(0, 1fr); }
+  .questions { grid-template-columns: minmax(0, 1fr); }
+  .stage { width: 100%; }
+}
+
 @media (max-width: 600px) {
   .topline { flex-direction: column; align-items: stretch; }
 }
@@ -202,4 +257,4 @@
 :global([data-profile="motor_visual"]) .speedStep { min-width: var(--space-8); }
 
 /* Aphasia-friendly profile: more room between steps. See profiles.css. */
-:global([data-profile="aphasia"]) .main { gap: var(--space-8); }
+:global([data-profile="aphasia"]) .session { gap: var(--space-6); }
