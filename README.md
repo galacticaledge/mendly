@@ -60,18 +60,20 @@ npm run dev
 
 ## Environment variables
 
-`.env.example` is the annotated master list; copy it and fill in what you need.
-**Which file you copy it to depends on how you are running the app**, because
-two different things read these variables:
+`.env.example` is the annotated master list; copy it to `.env.local`, or to
+`.env`, and fill in what you need. Both work either way you run the app: Next
+reads both with `.env.local` winning, and `docker-compose.yml` passes both into
+the container with the same precedence.
 
-| Running with | Copy to | Read by |
-|---|---|---|
-| `./mendly up` / `docker compose` | `.env` | Docker Compose, which substitutes the values into `docker-compose.yml` |
-| `npm run dev` | `.env.local` | Next.js directly |
+That is worth stating because it has bitten: Compose substitutes `${...}` from
+`.env` alone, so before the services took an `env_file` a key set in
+`.env.local` reached `npm run dev` and never the container — which looks
+exactly like a key that does not work.
 
-Next.js loads both `.env` and `.env.local`, with `.env.local` winning, so a
-single `.env` covers both cases if you prefer. Docker Compose only reads `.env`
-— values in `.env.local` never reach the container.
+Four values are the exception, because Compose owns the database connection and
+overrides whatever the files say: under Docker, `DATABASE_URL` and
+`DATABASE_SSL` always point at the `db` service, and `POSTGRES_PASSWORD` and
+`SESSION_SECRET` are read from `.env` or the shell rather than `.env.local`.
 
 Neither file is committed. Only `DATABASE_URL` is genuinely required, and the
 product is fully usable with no API keys at all.
@@ -148,12 +150,13 @@ nothing under `npm run dev`.
 | `DB_PORT` | `5432` | Host port for the database. Change it if a PostgreSQL installed on the machine is already holding 5432. |
 | `APP_PORT` | `3000` | Host port for the app. |
 
-Compose forwards only the variables named in `docker-compose.yml`:
-`SESSION_SECRET`, `BACKBOARD_API_KEY`, `BACKBOARD_LLM_PROVIDER`,
-`BACKBOARD_MODEL`, `BACKBOARD_MEMORY`, `ELEVENLABS_API_KEY` and
-`ELEVENLABS_VOICE_ID`. The rest of the table above — `DATABASE_SSL`,
-`BACKBOARD_TIMEOUT_MS`, `BACKBOARD_API_URL`, `ELEVENLABS_MODEL_ID` — takes
-effect outside Docker only, or once you add it to the `app` service yourself.
+Everything in `.env` and `.env.local` now reaches the container, so the rest of
+this page applies under Docker too — with the four overrides named at the top
+of this section.
+
+Changing a key means recreating the container, not just restarting it:
+`docker compose up -d --force-recreate app`. And `docker compose up` does not
+rebuild the image, so after changing code run `docker compose build app` first.
 
 ## The planner
 
