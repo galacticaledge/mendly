@@ -37,6 +37,7 @@ import { MotorExercise } from "./MotorExercise";
 import { CardMatch } from "./games/CardMatch";
 import { SymbolSort } from "./games/SymbolSort";
 import { WordRecall } from "./games/WordRecall";
+import { MathDrill } from "./games/MathDrill";
 import styles from "./session.module.css";
 
 type PlanItem = {
@@ -395,6 +396,18 @@ function CognitiveGame({
           level={level}
           rounds={rung.rounds}
           size={rung.size}
+          say={say}
+          onFinish={onFinish}
+        />
+      );
+    case "math-drill":
+      return (
+        <MathDrill
+          exerciseId={exercise.id}
+          level={level}
+          rounds={rung.rounds}
+          size={rung.size}
+          secondsPerRound={rung.secondsPerRound}
           say={say}
           onFinish={onFinish}
         />

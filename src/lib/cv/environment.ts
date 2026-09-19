@@ -47,8 +47,18 @@ export class EnvironmentChecker {
   constructor(
     private readonly view: BodyView,
     measured: PoseLandmarkName[] = [],
+    private readonly cameraAngle: "front" | "side" = "front",
   ) {
-    this.required = [...new Set([...REQUIRED[view], ...measured])];
+    // Face-on, the generic view requirements are a fair check: both shoulders
+    // and the face should be visible. Side-on they are not — the far shoulder
+    // is behind the near one and the face is in profile — so demanding them
+    // would fail the check forever and the exercise could never start. What
+    // still has to hold, and is the part that matters, is that the landmarks
+    // being measured can be seen.
+    this.required =
+      cameraAngle === "side"
+        ? [...new Set(measured)]
+        : [...new Set([...REQUIRED[view], ...measured])];
   }
 
   /** Feed a frame. Call for about two seconds before reading the result. */
@@ -91,6 +101,9 @@ export class EnvironmentChecker {
           this.view === "full"
             ? "Move so your whole body is inside the picture."
             : "Move so your head, shoulders and the arm you are using are all in the picture.";
+      } else if (this.cameraAngle === "side") {
+        advice =
+          "Turn so your side faces the camera, and make sure the arm or leg you are moving is in the picture.";
       } else {
         advice = "The camera cannot see you clearly. Try turning on a light or facing the camera.";
       }

@@ -87,3 +87,27 @@
 
 .wordChoice:hover { background: var(--brand-wash); }
 .wordChosen { background: var(--brand); border-color: var(--brand-deep); color: var(--inverse); }
+
+/* ---- Number work ---- */
+
+.sum {
+  margin: 0;
+  text-align: center;
+  color: var(--ink);
+}
+
+.answer {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 72px;
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.answer:hover { background: var(--brand-wash); }

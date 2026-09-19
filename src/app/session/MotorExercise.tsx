@@ -81,6 +81,7 @@ export function MotorExercise({
     new EnvironmentChecker(
       viewForPosture(exercise.posture),
       requiredLandmarksFor(exercise, affectedSide),
+      exercise.cameraAngle,
     ),
   );
   const lastSafetyAtRef = useRef(0);
@@ -170,7 +171,9 @@ export function MotorExercise({
       // most reassuring possible way.
       if (state.validReps > spokenRepRef.current) {
         spokenRepRef.current = state.validReps;
-        say(String(state.validReps));
+        // Silent for a proprioception task: hiding the count on screen and
+        // then reading it aloud would give the game away.
+        if (!exercise.hideLiveFeedback) say(String(state.validReps));
       }
 
       // `isComplete` also covers running out of attempts without meeting the
@@ -179,7 +182,7 @@ export function MotorExercise({
       // the shortfall is visible without overstating what happened.
       if (tracker.isComplete) finish("completed");
     },
-    [finish, live?.trackingValid, reportAlert, say],
+    [exercise.hideLiveFeedback, finish, live?.trackingValid, reportAlert, say],
   );
 
   const { videoRef, status, error } = usePoseStream({ onFrame: handleFrame, enabled: true });
@@ -219,6 +222,13 @@ export function MotorExercise({
   const attempts = live?.reps ?? 0;
   const shortAttempts = Math.max(0, attempts - validReps);
   const setupNeedsFullView = exercise.view === "full";
+  // Sagittal movements are measured from the side; a front-on view sees the
+  // limb end on and the angle becomes noise.
+  const needsSideView = exercise.cameraAngle === "side";
+  // A proprioception task hides its own measurement: showing the angle or a
+  // running count would turn finding a remembered position into reading a
+  // number off the screen.
+  const hideFeedback = exercise.hideLiveFeedback === true;
 
   return (
     <section className={styles.exercise} aria-labelledby="exercise-title">
@@ -255,6 +265,12 @@ export function MotorExercise({
 
       {stage === "setup" && status === "running" && (
         <div className={styles.panel}>
+          {needsSideView && (
+            <p className={`${styles.advice} body-lg`}>
+              <StatusTag tone="caution">Turn</StatusTag> Turn so your side is facing the camera for
+              this one.
+            </p>
+          )}
           <p className="body-lg">
             {setupNeedsFullView
               ? "Checking the camera can see all of you."
@@ -275,6 +291,12 @@ export function MotorExercise({
             You will do this {rung.reps} times
             {rung.holdSeconds > 0 ? `, holding each one for ${rung.holdSeconds} seconds` : ""}.
           </p>
+          {hideFeedback && (
+            <p className={`${styles.hint} body`}>
+              The screen will not show you how far you have moved for this one. That is on purpose —
+              the exercise is finding the position by feel.
+            </p>
+          )}
           <Button variant="primary" onClick={begin}>
             I&apos;m ready
           </Button>
@@ -283,19 +305,31 @@ export function MotorExercise({
 
       {stage === "running" && (
         <div className={styles.panel}>
-          <ProgressBar
-            label="Repetitions"
-            value={validReps}
-            max={rung.reps}
-            valueText={`${validReps} of ${rung.reps} done`}
-          />
-
-          {shortAttempts > 0 && (
-            <p className={`${styles.hint} body`}>
-              {shortAttempts === 1
-                ? "One movement did not reach far enough to count."
-                : `${shortAttempts} movements did not reach far enough to count.`}
+          {hideFeedback ? (
+            // No count, no angle, no "almost there". The person is meant to be
+            // sensing where their arm is, and any of those would answer the
+            // question for them. Tracking state still shows, because a camera
+            // that cannot see them is a problem they do need to know about.
+            <p className={`${styles.guidance} body-lg`} aria-live="polite">
+              Move to the position, hold it, then come back down. Keep going until I say stop.
             </p>
+          ) : (
+            <>
+              <ProgressBar
+                label="Repetitions"
+                value={validReps}
+                max={rung.reps}
+                valueText={`${validReps} of ${rung.reps} done`}
+              />
+
+              {shortAttempts > 0 && (
+                <p className={`${styles.hint} body`}>
+                  {shortAttempts === 1
+                    ? "One movement did not reach far enough to count."
+                    : `${shortAttempts} movements did not reach far enough to count.`}
+                </p>
+              )}
+            </>
           )}
 
           <div className={styles.liveRow}>
@@ -306,7 +340,7 @@ export function MotorExercise({
             {live?.trackingValid && <StatusTag tone="positive">Tracking</StatusTag>}
           </div>
 
-          {live?.guidance && (
+          {!hideFeedback && live?.guidance && (
             <p className={`${styles.guidance} body-lg`} aria-live="polite">
               {live.guidance}
             </p>

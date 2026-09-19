@@ -247,8 +247,26 @@ async function main() {
   if (!sam) throw new Error("Could not create Sam.");
 
   const samRules: PractitionerRules = {
-    allowedExerciseIds: ["card_match", "symbol_sort", "arm_raise", "elbow_bend", "forward_reach"],
-    maxLevel: { card_match: 3, symbol_sort: 2, arm_raise: 3, elbow_bend: 2, forward_reach: 2 },
+    allowedExerciseIds: [
+      "card_match",
+      "symbol_sort",
+      "math_drill",
+      "arm_raise",
+      "elbow_bend",
+      "forward_reach",
+      "diagonal_reach",
+      "shoulder_claps",
+    ],
+    maxLevel: {
+      card_match: 3,
+      symbol_sort: 2,
+      math_drill: 2,
+      arm_raise: 3,
+      elbow_bend: 2,
+      forward_reach: 2,
+      diagonal_reach: 2,
+      shoulder_claps: 2,
+    },
     standingAllowed: false,
     // Shoulder pain on the affected side, so overhead work is excluded by tag.
     contraindications: ["overhead_reach"],
@@ -351,16 +369,24 @@ async function main() {
     allowedExerciseIds: [
       "card_match",
       "word_recall",
+      "math_drill",
       "arm_raise",
       "overhead_arm_raise",
+      "shoulder_flexion",
+      "proprioception_match",
+      "ankle_dorsiflexion",
       "seated_march",
       "sit_to_stand",
     ],
     maxLevel: {
       card_match: 4,
       word_recall: 3,
+      math_drill: 3,
       arm_raise: 4,
       overhead_arm_raise: 3,
+      shoulder_flexion: 3,
+      proprioception_match: 2,
+      ankle_dorsiflexion: 3,
       seated_march: 4,
       sit_to_stand: 3,
     },
@@ -370,7 +396,9 @@ async function main() {
     maxMotorMinutes: 18,
     affectedSide: "left",
     goals: ["Climb the stairs at home", "Stand long enough to make a meal"],
-    notes: "Standing work is fine with a chair behind her. Confident, so watch that levels do not run ahead of control.",
+    notes:
+      "Standing work is fine with a chair behind her. Confident, so watch that levels do not run ahead of control. " +
+      "Ankle work is for the foot drop on the left; she needs reminding to turn side-on to the camera for it.",
   };
   await queryOne(
     `INSERT INTO rules (patient_id, practitioner_id, payload) VALUES ($1, $2, $3) RETURNING id`,
@@ -408,8 +436,8 @@ async function main() {
   if (!tunde) throw new Error("Could not create Tunde.");
 
   const tundeRules: PractitionerRules = {
-    allowedExerciseIds: ["card_match", "symbol_sort", "arm_raise", "seated_march"],
-    maxLevel: { card_match: 2, symbol_sort: 2, arm_raise: 2, seated_march: 2 },
+    allowedExerciseIds: ["card_match", "symbol_sort", "math_drill", "arm_raise", "diagonal_reach"],
+    maxLevel: { card_match: 2, symbol_sort: 2, math_drill: 1, arm_raise: 2, diagonal_reach: 1 },
     standingAllowed: false,
     contraindications: ["balance", "weight_bearing"],
     maxExercisesPerSet: 3,
