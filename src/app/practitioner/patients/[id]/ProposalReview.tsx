@@ -58,7 +58,11 @@ export function ProposalReview({
             decision === "approve"
               ? kept.map((item) => ({
                   exerciseId: item.exerciseId,
-                  level: levels[item.exerciseId],
+                  // Falling back to what was proposed. An absent entry here is
+                  // dropped by JSON.stringify rather than sent as null, so the
+                  // server saw an exercise with no level at all and rejected
+                  // the whole set.
+                  level: levels[item.exerciseId] ?? item.level,
                   rationale: item.rationale,
                 }))
               : undefined,
@@ -122,7 +126,7 @@ export function ProposalReview({
               <div className={styles.proposalControls}>
                 <Select
                   label="Level"
-                  value={String(levels[item.exerciseId])}
+                  value={String(levels[item.exerciseId] ?? item.level)}
                   disabled={isDropped}
                   onChange={(event) =>
                     setLevels((current) => ({

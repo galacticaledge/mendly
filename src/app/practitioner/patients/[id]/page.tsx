@@ -68,6 +68,11 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
       {/* The review step, first on the page: it is the thing that needs doing. */}
       {pending ? (
         <ProposalReview
+          // Keyed on the proposal, so a different one gets a fresh form rather
+          // than the last one's edits. Without this, React reuses the instance
+          // between patients and the level map still holds the previous
+          // patient's exercise ids — which then submits levels of `undefined`.
+          key={pending.id}
           setId={pending.id}
           summary={pending.ai_summary}
           source={pending.ai_source}
@@ -171,6 +176,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
       </section>
 
       <RulesEditor
+        // Keyed on the patient. The editor holds the rules being edited in its
+        // own state, and `patientId` is a prop: reusing the instance across two
+        // patients meant saving wrote one patient's rules onto the other.
+        key={id}
         patientId={id}
         rules={rules}
         tagLabels={TAG_LABELS}

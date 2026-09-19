@@ -380,6 +380,7 @@ function CognitiveGame({
     case "card-match":
       return (
         <CardMatch
+          key={exercise.id}
           exerciseId={exercise.id}
           level={level}
           pairs={rung.size}
@@ -390,6 +391,7 @@ function CognitiveGame({
     case "symbol-sort":
       return (
         <SymbolSort
+          key={exercise.id}
           exerciseId={exercise.id}
           level={level}
           rounds={rung.rounds}
@@ -402,6 +404,7 @@ function CognitiveGame({
     case "word-recall":
       return (
         <WordRecall
+          key={exercise.id}
           exerciseId={exercise.id}
           level={level}
           rounds={rung.rounds}
@@ -413,6 +416,7 @@ function CognitiveGame({
     case "math-drill":
       return (
         <MathDrill
+          key={exercise.id}
           exerciseId={exercise.id}
           level={level}
           rounds={rung.rounds}
