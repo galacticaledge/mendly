@@ -12,7 +12,12 @@
  * the rules as well as passing this check (docs/06).
  */
 
-import type { BodyView, EnvironmentAssessment, PoseFrame, PoseLandmarkName } from "@/lib/contracts";
+import type {
+  BodyView,
+  EnvironmentAssessment,
+  PoseFrame,
+  PoseLandmarkName,
+} from "@/lib/contracts";
 import { isInFrame, isVisible } from "@/lib/cv/landmarks";
 
 /** What each view needs to see. */
@@ -20,7 +25,16 @@ const REQUIRED: Record<BodyView, PoseLandmarkName[]> = {
   // Shoulders-up is enough for cognitive work and seated arm exercises.
   upper: ["nose", "left_shoulder", "right_shoulder"],
   // A standing exercise needs the legs, or there is nothing to measure.
-  full: ["left_shoulder", "right_shoulder", "left_hip", "right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle"],
+  full: [
+    "left_shoulder",
+    "right_shoulder",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle",
+  ],
 };
 
 /** Fraction of sampled frames that must satisfy the view. */
@@ -57,6 +71,17 @@ export class EnvironmentChecker {
     const required = this.required;
 
     const allVisible = required.every((name) => isVisible(frame[name]));
+    const invisible = required.filter((name) => !isVisible(frame[name]));
+
+    if (invisible.length > 0) {
+      console.log(
+        "Environment check invisible landmarks:",
+        invisible.map((name) => ({
+          name,
+          visibility: frame[name]?.visibility,
+        })),
+      );
+    }
     const allInFrame = required.every((name) => {
       const landmark = frame[name];
       return landmark !== undefined && isInFrame(landmark);
@@ -67,9 +92,12 @@ export class EnvironmentChecker {
       return;
     }
 
-    const legsGone = ["left_knee", "right_knee", "left_ankle", "right_ankle"].some(
-      (name) => !isVisible(frame[name as PoseLandmarkName]),
-    );
+    const legsGone = [
+      "left_knee",
+      "right_knee",
+      "left_ankle",
+      "right_ankle",
+    ].some((name) => !isVisible(frame[name as PoseLandmarkName]));
     if (legsGone) this.missedLegs += 1;
     else if (!allInFrame) this.outOfFrame += 1;
   }
@@ -85,14 +113,16 @@ export class EnvironmentChecker {
     let advice: string | null = null;
     if (!feasible) {
       if (this.view === "full" && this.missedLegs >= this.outOfFrame) {
-        advice = "Move the camera back, or set it further away, so your legs and feet are in the picture.";
+        advice =
+          "Move the camera back, or set it further away, so your legs and feet are in the picture.";
       } else if (this.outOfFrame > 0) {
         advice =
           this.view === "full"
             ? "Move so your whole body is inside the picture."
             : "Move so your head, shoulders and the arm you are using are all in the picture.";
       } else {
-        advice = "The camera cannot see you clearly. Try turning on a light or facing the camera.";
+        advice =
+          "The camera cannot see you clearly. Try turning on a light or facing the camera.";
       }
     }
 
