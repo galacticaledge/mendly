@@ -14,6 +14,7 @@ import { getSession, listAlerts, raiseAlert } from "@/lib/db/queries";
 
 const KINDS: AlertKind[] = [
   "possible_fall",
+  "fall_out_of_view",
   "prolonged_floor_position",
   "tracking_lost",
   "session_abandoned",

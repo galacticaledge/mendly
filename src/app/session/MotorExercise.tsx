@@ -113,7 +113,16 @@ export function MotorExercise({
     trackerRef.current = new ExerciseTracker({ exercise, level, affectedSide });
   }
 
-  /** Send a safety alert. Fire and forget: it must not block the session. */
+  /**
+   * Send a safety alert. Fire and forget: it must not block the session.
+   *
+   * Nothing is shown to the patient if this fails — there is nothing they could
+   * do about it mid-exercise, and the practitioner still has the session record.
+   * But it is logged, including a refusal from the server, which a bare
+   * `.catch()` on a fetch does not catch: a rejected alert used to leave no
+   * trace anywhere, and a safety signal that fails silently is indistinguishable
+   * from one that was never raised.
+   */
   const reportAlert = useCallback(
     (alert: {
       kind: string;
@@ -125,10 +134,18 @@ export function MotorExercise({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...alert, sessionId }),
-      }).catch(() => {
-        // The practitioner will still see the session record; nothing further
-        // to do from inside a rehabilitation session.
-      });
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            console.error(
+              `[mendly] The ${alert.kind} alert was refused: HTTP ${response.status}`,
+              await response.text().catch(() => ""),
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(`[mendly] The ${alert.kind} alert could not be sent:`, error);
+        });
     },
     [sessionId],
   );
