@@ -7,9 +7,14 @@
  *
  * The last step is what keeps the loop turning — by the time the practitioner
  * next opens the dashboard, a draft built on today's measurements is already
- * waiting for them.
+ * waiting for them. It runs in `after`, once the response has gone, because it
+ * is a call to a language model and nobody should sit in front of a finished
+ * session watching a button wait on it. Nothing the patient sees next depends
+ * on the draft; only the practitioner's review screen does, and that is a
+ * separate visit.
  */
 
+import { after } from "next/server";
 import { handle, forbidden, notFound } from "@/lib/api";
 import { requireUser } from "@/lib/auth/session";
 import type { SessionAnswer } from "@/lib/contracts";
@@ -28,6 +33,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   return handle(async () => {
     const user = await requireUser("patient");
     const { id } = await context.params;
+    // Read off the request before `after` runs, which is past the request.
+    const patientId = user.id;
 
     const session = await getSession(id);
     if (!session) notFound("That session does not exist.");
@@ -80,20 +87,19 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const results = await listResultsForSession(id);
 
     // Draft the next set from what was just measured. A failure here must not
-    // fail the request: the patient has finished their session either way, and
-    // the practitioner can ask for a draft themselves.
-    let nextSetId: string | null = null;
-    try {
-      const { row } = await proposeAndStore(user.id);
-      nextSetId = row?.id ?? null;
-    } catch (error) {
-      console.error("[mendly] Could not draft the next set:", error);
-    }
+    // fail anything: the patient has finished their session either way, and the
+    // practitioner can ask for a draft themselves.
+    after(async () => {
+      try {
+        await proposeAndStore(patientId);
+      } catch (error) {
+        console.error("[mendly] Could not draft the next set:", error);
+      }
+    });
 
     return {
       completed: true,
       exercisesRecorded: results.length,
-      nextSetId,
     };
   });
 }
