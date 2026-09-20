@@ -9,10 +9,14 @@
 
 /* ---- Card pairs ---- */
 
+/* The board is the tallest thing a cognitive exercise puts on the screen — ten
+   pairs is four rows of 96px targets — so the cards sit one step closer than
+   the rest of the session. Each card has its own border and fill; the gap is
+   not what tells them apart. */
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(var(--columns, 4), 1fr);
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .card {

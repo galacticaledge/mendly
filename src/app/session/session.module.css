@@ -8,11 +8,26 @@
    between sections; a session is not a document to scroll. Someone mid-
    exercise has their affected arm raised and cannot reach to scroll, so what
    they need has to be on screen at once, and the trailing --space-9 is room
-   this screen does not have to give. */
+   this screen does not have to give.
+
+   Every step down from here is one token step, not a new value: where the app
+   reaches for --space-5 this screen reaches for --space-4, and where it opens
+   with --space-7 this screen opens with --space-5. A motor exercise and the
+   closing questions both ran past the bottom of an 800px viewport, and the
+   person answering them has just finished using their affected arm. */
 .session {
-  gap: var(--space-5);
-  padding-bottom: var(--space-6);
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-5);
 }
+
+/* Headings and paragraphs here carry no margin of their own. Every container
+   on this screen is flex or grid, so the gap is the whole story — but the
+   browser's own margin was landing on top of it, unasked for and unequal:
+   90px of it in the closing questions, 68px in the head of a motor exercise.
+   One rule, rather than the `margin: 0` that was being added a line at a time
+   to each new element. */
+.session :is(h1, h2, h3, p) { margin: 0; }
 
 .topline {
   display: flex;
@@ -81,7 +96,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-5);
+  gap: var(--space-4);
   max-width: 720px;
 }
 
@@ -92,13 +107,19 @@
 
 /* The primary panel on the session screen, and the only card here that is its
    own surface: radius-lg and shadow-resting. Everything inside it is a control
-   at radius-md, and casts nothing. */
+   at radius-md, and casts nothing.
+
+   --space-5 rather than the --space-6 the token notes give the primary panel:
+   with a 64px button and a size-larger type step, this panel is the tallest
+   column of a motor exercise on the motor and visual-friendly profile, taller
+   than the camera beside it, and 32px of padding top and bottom was the last
+   thing pushing the stop button off the bottom of a 768px screen. */
 .panel {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-5);
-  padding: var(--space-6);
+  gap: var(--space-4);
+  padding: var(--space-5);
   background: var(--surface-raised);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-resting);
@@ -110,7 +131,7 @@
 .exercise {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
   max-width: 720px;
 }
 
@@ -125,25 +146,27 @@
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-5) var(--space-6);
+  gap: var(--space-4) var(--space-5);
   max-width: none;
 }
 
 /* The name of the exercise belongs to both columns. */
 .withCamera .exerciseHead { grid-column: 1 / -1; }
-.exerciseHead p:first-child { color: var(--ink-600); text-transform: uppercase; margin: 0; }
-.exerciseHead h1, .exerciseHead h2 { margin: 0; }
-.instruction { margin: 0; color: var(--ink-900); }
+.exerciseHead p:first-child { color: var(--ink-600); text-transform: uppercase; }
+.instruction { color: var(--ink-900); }
 
 /* ---- The camera ---- */
 
 /* Bounded by the height available as well as the width. Left to fill its
    column the camera is 4:3 of whatever that column is, which on a short laptop
    pushes the controls under it off the bottom — so the width is capped at
-   whatever keeps the picture inside 46% of the viewport's height. */
+   whatever keeps the picture inside 40% of the viewport's height. 40 rather
+   than 46 because everything around it is a fixed cost that does not shrink
+   with the viewport: at 46 the picture took back every pixel the spacing above
+   it gave up, and a 720px-tall laptop still had to scroll. */
 .stage {
   position: relative;
-  width: min(100%, calc(46dvh * 4 / 3));
+  width: min(100%, calc(40dvh * 4 / 3));
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -170,17 +193,14 @@
   background: var(--border-divider);
 }
 
-.cameraState p { margin: 0; }
-
 .liveRow { display: flex; flex-wrap: wrap; gap: var(--space-3); }
-.guidance { margin: 0; color: var(--ink-900); }
-.advice { display: flex; align-items: center; gap: var(--space-3); margin: 0; }
+.guidance { color: var(--ink-900); }
+.advice { display: flex; align-items: center; gap: var(--space-3); }
 
 .notes {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  margin: 0;
   padding: var(--space-4);
   background: var(--surface-raised);
   border-radius: var(--radius-sm);
@@ -188,7 +208,7 @@
 
 .notes span { color: var(--ink-600); text-transform: uppercase; }
 
-.hint { color: var(--ink-600); margin: 0; }
+.hint { color: var(--ink-600); }
 
 /* What the microphone is doing, sitting with the prompt that invites speaking.
    Quiet: it is a second route to the button beside it, not an instruction. */
@@ -199,7 +219,6 @@
   color: var(--ink-600);
 }
 
-.voiceCue p { margin: 0; }
 .voiceCue svg { flex: none; margin-top: var(--space-1); }
 
 .voiceCueBody {
@@ -213,12 +232,11 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-5) var(--space-6);
+  gap: var(--space-4) var(--space-5);
   width: 100%;
 }
 
 .error {
-  margin: 0;
   padding: var(--space-4);
   color: var(--coral-700);
   background: var(--coral-100);
@@ -256,5 +274,8 @@
 }
 :global([data-profile="motor_visual"]) .speedStep { min-width: var(--space-8); }
 
-/* Aphasia-friendly profile: more room between steps. See profiles.css. */
-:global([data-profile="aphasia"]) .session { gap: var(--space-6); }
+/* Aphasia-friendly profile: more room between steps. See profiles.css. One
+   step above whatever this screen uses, not a fixed value — standard came down
+   to --space-4, and left at --space-6 this was opening the session wider for
+   the profile that also sets the type a size larger. */
+:global([data-profile="aphasia"]) .session { gap: var(--space-5); }
