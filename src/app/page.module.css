@@ -16,10 +16,14 @@
 
 /* The dashboard columns stay within the existing page width and padding. */
 .today {
+  max-width: 900px;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: var(--space-6);
   display: grid;
-  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
   align-items: start;
-  gap: var(--space-7);
+  gap: var(--space-6);
 }
 
 .focus,
@@ -27,22 +31,33 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: var(--space-6);
-}
-
-.focus { gap: var(--space-6); }
-
-.today :global(.rs-session-card) {
-  padding: var(--space-6);
-  border: 1px solid var(--border-divider);
   gap: var(--space-5);
 }
 
+.focus { gap: var(--space-4); }
+
+.today :global(.rs-session-card) {
+  padding: var(--space-5);
+  border: 1px solid var(--border-divider);
+  gap: var(--space-4);
+  background: var(--surface-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-resting);
+}
+
+.today :global(.rs-session-card) :global(.body-lg) { font-size: 15px; line-height: 23px; color: var(--ink-700); }
+.today :global(.rs-session-card) :global(.h3) { font-size: 21px; line-height: 28px; color: var(--teal-deep); }
+.today :global(.rs-session-card) :global(.body-sm):first-child { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.today :global(.rs-session-card) :global(.rs-btn) { min-height: 44px; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); }
+.today :global(.rs-session-card) :global(.rs-btn) svg { width: 16px; height: 16px; }
+
 .today :global(.rs-session-card .rs-session-meta) {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   background: var(--off-white);
-  color: var(--teal-900);
+  color: var(--ink-600);
+  font-size: 12px;
+  gap: var(--space-3);
 }
 
 @media (max-width: 900px) {
@@ -50,14 +65,19 @@
 }
 
 .weekCallout {
-  padding: var(--space-5);
+  position: relative;
+  padding: var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-divider);
   background: var(--surface-white);
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
-.weekCallout :global(.rs-progress-track) { height: 8px; }
+.weekCallout .heading { font-size: 18px; line-height: 24px; }
+.weekCallout :global(.rs-progress-label) { margin-bottom: var(--space-3); }
+.weekCallout :global(.rs-progress-label .label) { font-size: 12px; font-weight: 400; color: var(--ink-600); }
+.weekCallout :global(.rs-progress-label .body) { position: absolute; top: var(--space-4); right: var(--space-4); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); background: var(--off-white); font-size: 12px; line-height: 18px; color: var(--teal-900); }
+.weekCallout :global(.rs-progress-track) { height: 6px; }
 .weekCallout :global(.rs-progress-fill) { background: var(--teal-deep); }
 
 .weekDays {
@@ -65,24 +85,24 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--space-2);
   margin: 0;
-  padding: var(--space-2) 0 0;
+  padding: var(--space-1) 0 0;
   list-style: none;
   text-align: center;
 }
 
-.weekDays li { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
-.weekDays li > span:first-child { color: var(--ink-600); }
+.weekDays li { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.weekDays li > span:first-child { color: var(--ink-600); font-size: 11px; }
 .dayStatus {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-full);
-  background: var(--off-white);
+  background: var(--cream-bg);
   color: var(--teal-900);
 }
 .dayDone { background: var(--teal-deep); color: var(--on-teal); }
-.currentDay .dayStatus { width: auto; min-width: 40px; padding: 0 var(--space-1); background: var(--coral-100); color: var(--coral-700); }
+.currentDay .dayStatus { width: auto; min-width: 32px; padding: 0 var(--space-1); background: var(--coral-100); color: var(--coral-700); font-size: 11px; }
 .currentDay .dayDone { background: var(--teal-deep); color: var(--on-teal); }
 
 .greeting {
@@ -109,6 +129,9 @@
 .date {
   color: var(--teal-deep);
 }
+
+.today .welcome { font-size: 32px; line-height: 40px; }
+.today .date { font-size: 14px; line-height: 20px; }
 
 .date {
   margin: 0;
@@ -138,29 +161,50 @@
   list-style: none;
 }
 
+.today .section { gap: var(--space-3); }
+.today .section > .heading { font-size: 19px; line-height: 26px; }
+
 .today .list { gap: var(--space-2); }
 .today .list :global(.rs-activity-row) {
   min-width: 0;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
   background: var(--surface-white);
 }
 .today .list :global(.rs-activity-row[data-next-up="true"]) {
-  border-color: var(--teal-700);
-  background: var(--off-white);
+  border-color: var(--border-divider);
+  background: var(--surface-white);
 }
-.today .list :global(.rs-activity-status.is-pending) { background: var(--off-white); }
+.today .list :global(.rs-activity-row .body-lg) { font-size: 15px; line-height: 22px; font-weight: 600; }
+.today .list :global(.rs-activity-row .body-sm) { font-size: 12px; line-height: 18px; }
+.today .list :global(.rs-activity-status) { width: 26px; height: 26px; min-width: 26px; }
+.today .list :global(.rs-activity-status.is-pending) { background: var(--cream-bg); border: 0; }
+.today .list :global(.rs-activity-status.is-pending)::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-600); }
+.today .list :global(.rs-activity-row:has(.is-done)) { background: var(--off-white); }
 
 .reminder {
-  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
   background: var(--off-white);
 }
+.reminderIcon { display: grid; place-items: center; width: 28px; height: 28px; min-width: 28px; border-radius: var(--radius-sm); background: var(--cream-bg); color: var(--teal-900); }
 .reminder h2, .reminder p { margin: 0; }
-.reminder h2 { color: var(--teal-900); margin-bottom: var(--space-2); }
-.reminder p { overflow-wrap: anywhere; white-space: pre-wrap; }
+.reminder h2 { color: var(--teal-900); margin-bottom: var(--space-1); font-size: 14px; }
+.reminder p { overflow-wrap: anywhere; white-space: pre-wrap; font-size: 13px; line-height: 20px; color: var(--ink-700); }
+
+@media (max-width: 480px) {
+  .today { padding-inline: var(--space-4); }
+  .weekCallout :global(.rs-progress-label .body) { position: static; }
+  .weekDays { gap: 0; }
+}
+
+:global([data-profile="motor_visual"]) .today :global(.rs-session-card .rs-btn) { min-height: var(--space-8); }
+:global([data-profile="motor_visual"]) .today .list :global(.rs-activity-status) { width: var(--space-7); height: var(--space-7); min-width: var(--space-7); }
 
 /* A note from the care team. A label over the text, no box: whitespace
    separates it, and it never becomes a panel inside the session card. */

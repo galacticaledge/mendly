@@ -24,7 +24,7 @@ export function ActivityRow({ title, status, done, nextUp = false }: ActivityRow
         <span className="body-lg">{title}</span>
         <span className={`${styles.status} body-sm`}>{status}</span>
       </span>
-      {nextUp && <span className={`${styles.nextUp} label-sm`}>Next up</span>}
+      {done ? <span className={`${styles.done} label-sm`}>Done</span> : nextUp && <span className={`${styles.nextUp} label-sm`}>Next up</span>}
     </li>
   );
 }

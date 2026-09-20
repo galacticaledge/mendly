@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, HeartHandshake, Play } from "lucide-react";
 import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { SessionCard } from "@/components/SessionCard/SessionCard";
@@ -158,7 +158,6 @@ export default async function Dashboard() {
         <section
           className={`${styles.section} ${styles.weekCallout}`}
           aria-labelledby="week-heading"
-          data-ground="teal"
         >
           <h2 id="week-heading" className={`${styles.heading} h2`}>
             Your week
@@ -205,8 +204,11 @@ export default async function Dashboard() {
         )}
         {today?.notes?.trim() && (
           <aside className={styles.reminder} aria-label="Care team note">
-            <h2 className="label">Care team note</h2>
-            <p className="body">{today.notes}</p>
+            <span className={styles.reminderIcon} aria-hidden="true"><HeartHandshake size={18} /></span>
+            <div>
+              <h2 className="label">Care team note</h2>
+              <p className="body">{today.notes}</p>
+            </div>
           </aside>
         )}
       </div>
