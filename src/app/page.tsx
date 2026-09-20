@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ArrowRight, HeartHandshake, Play } from "lucide-react";
+import { ArrowRight, Check, HeartHandshake, Play } from "lucide-react";
 import { ActivityRow } from "@/components/ActivityRow/ActivityRow";
 import { ProgressBar } from "@/components/ProgressBar/ProgressBar";
 import { SessionCard } from "@/components/SessionCard/SessionCard";
@@ -173,7 +173,7 @@ export default async function Dashboard() {
               <li key={index} className={day.isToday ? styles.currentDay : undefined}>
                 <span className="body-sm">{day.label.slice(0, 3)}</span>
                 <span className={`${styles.dayStatus} ${day.done ? styles.dayDone : ""} label-sm`} aria-label={`${day.label}: ${day.done ? "session done" : day.isToday ? "today, no session completed yet" : "no session completed"}`}>
-                  {day.done ? "✓" : day.isToday ? "Today" : "·"}
+                  {day.done ? <Check size={15} strokeWidth={2.5} aria-hidden="true" /> : day.isToday ? "Today" : null}
                 </span>
               </li>
             ))}

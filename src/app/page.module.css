@@ -16,12 +16,12 @@
 
 /* The dashboard columns stay within the existing page width and padding. */
 .today {
-  max-width: 900px;
+  max-width: 1080px;
   width: 100%;
   box-sizing: border-box;
   padding-top: var(--space-6);
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
   align-items: start;
   gap: var(--space-6);
 }
@@ -60,7 +60,7 @@
   gap: var(--space-3);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   .today { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -102,7 +102,9 @@
   color: var(--teal-900);
 }
 .dayDone { background: var(--teal-deep); color: var(--on-teal); }
+.dayStatus:not(.dayDone)::after { content: ""; width: 3px; height: 3px; border-radius: 50%; background: var(--ink-600); }
 .currentDay .dayStatus { width: auto; min-width: 32px; padding: 0 var(--space-1); background: var(--coral-100); color: var(--coral-700); font-size: 11px; }
+.currentDay .dayStatus::after { content: none; }
 .currentDay .dayDone { background: var(--teal-deep); color: var(--on-teal); }
 
 .greeting {
