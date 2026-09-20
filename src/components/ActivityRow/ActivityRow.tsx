@@ -6,6 +6,7 @@ type ActivityRowProps = {
   /** One line under the title. Carries the state in words ("Done", "To do"). */
   status: string;
   done: boolean;
+  nextUp?: boolean;
 };
 
 /**
@@ -13,9 +14,9 @@ type ActivityRowProps = {
  * ring when not, so the two differ by shape as well as colour. Render inside an
  * <ol> or <ul>; rows are separated by a hairline, never boxed.
  */
-export function ActivityRow({ title, status, done }: ActivityRowProps) {
+export function ActivityRow({ title, status, done, nextUp = false }: ActivityRowProps) {
   return (
-    <li className="rs-activity-row">
+    <li className="rs-activity-row" data-next-up={nextUp || undefined}>
       <span className={`rs-activity-status ${done ? "is-done" : "is-pending"}`} aria-hidden="true">
         {done && <Check size={20} />}
       </span>
@@ -23,6 +24,7 @@ export function ActivityRow({ title, status, done }: ActivityRowProps) {
         <span className="body-lg">{title}</span>
         <span className={`${styles.status} body-sm`}>{status}</span>
       </span>
+      {done ? <span className={`${styles.done} label-sm`}>Done</span> : nextUp && <span className={`${styles.nextUp} label-sm`}>Next up</span>}
     </li>
   );
 }

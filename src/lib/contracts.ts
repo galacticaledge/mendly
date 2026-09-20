@@ -420,6 +420,8 @@ export type EnvironmentAssessment = {
 /** Kinds of thing the safety watcher can raise. Never a diagnosis (docs/07). */
 export type AlertKind =
   | "possible_fall"
+  /** Dropped fast, then went out of the picture and did not come back. */
+  | "fall_out_of_view"
   | "prolonged_floor_position"
   | "tracking_lost"
   | "session_abandoned"

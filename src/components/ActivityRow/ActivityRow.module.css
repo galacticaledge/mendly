@@ -1,3 +1,20 @@
 .status {
   color: var(--ink-600);
 }
+
+.nextUp {
+  flex: none;
+  align-self: center;
+  color: var(--coral-700);
+  background: var(--coral-100);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-2);
+}
+
+.done {
+  flex: none;
+  color: var(--teal-900);
+  background: var(--off-white);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-2);
+}

@@ -20,7 +20,7 @@
  */
 
 import type { PoseFrame, SafetyAlert } from "@/lib/contracts";
-import { isVisible } from "@/lib/cv/landmarks";
+import { isInFrame, isVisible } from "@/lib/cv/landmarks";
 
 /** Fraction of frame height the head must drop through to look like a fall. */
 const FALL_DROP = 0.22;
@@ -38,6 +38,16 @@ const STILLNESS_RANGE = 0.05;
 const PROLONGED_FLOOR_MS = 12_000;
 /** Person absent this long during a session is worth a quiet mention. */
 const ABSENCE_MS = 25_000;
+/**
+ * Gone this long, after dropping out of the bottom of the picture, is a fall.
+ *
+ * Long enough that ducking out of shot to pick something up is back before it
+ * fires, and far short of ABSENCE_MS, because the thing being reported here is
+ * not "nobody is there" — it is "they went down fast and have not got up".
+ */
+const VANISH_PERSIST_MS = 8000;
+/** Head at least this far down the frame when last seen: going down, not away. */
+const VANISHED_HEAD_Y = 0.45;
 
 type Sample = {
   t: number;
@@ -50,6 +60,17 @@ type Sample = {
 /**
  * Where the head is and how the torso is oriented, or null if the frame does
  * not show enough of the body to say.
+ *
+ * "Enough of the body" includes being inside the picture. MediaPipe keeps
+ * reporting a landmark that has left the frame, extrapolated from the rest of
+ * the body (landmarks.ts, isInFrame), and a body that has dropped below the
+ * bottom edge comes back as shoulders neatly above hips — upright — at a head
+ * height of 1.2. Read as a measurement that is a person standing calmly off
+ * the bottom of the screen, which is why a fall in front of a laptop webcam
+ * raised nothing at all: never low and horizontal at the same time, and never
+ * absent either, so neither the fall test nor the absence test could fire.
+ * Out of the picture is not a posture. It is gone, and handleAbsence decides
+ * what that means.
  */
 function readPosture(frame: PoseFrame): { headY: number; tiltDeg: number } | null {
   const leftShoulder = frame.left_shoulder;
@@ -59,6 +80,9 @@ function readPosture(frame: PoseFrame): { headY: number; tiltDeg: number } | nul
 
   if (!isVisible(leftShoulder) || !isVisible(rightShoulder)) return null;
   if (!isVisible(leftHip) || !isVisible(rightHip)) return null;
+  // The shoulders anchor everything below, including the fallback head
+  // position. Once they are outside the frame nothing here is a measurement.
+  if (!isInFrame(leftShoulder) || !isInFrame(rightShoulder)) return null;
 
   const shoulderMid = {
     x: (leftShoulder.x + rightShoulder.x) / 2,
@@ -69,8 +93,10 @@ function readPosture(frame: PoseFrame): { headY: number; tiltDeg: number } | nul
     y: (leftHip.y + rightHip.y) / 2,
   };
 
-  // The head, or the shoulders as a stand-in when the face is turned away.
-  const head = isVisible(frame.nose) ? frame.nose : null;
+  // The head, or the shoulders as a stand-in when the face is turned away or
+  // has gone over the edge of the picture.
+  const nose = frame.nose;
+  const head = isVisible(nose) && isInFrame(nose) ? nose : null;
   const headY = head ? head.y : shoulderMid.y;
 
   // Angle of the hip-to-shoulder line away from straight up. A seated person
@@ -89,6 +115,7 @@ export class SafetyWatcher {
   /** Set once an alert has fired, so one event does not alert repeatedly. */
   private episodeAlerted = false;
   private absenceAlerted = false;
+  private vanishAlerted = false;
 
   /**
    * Feed a frame. Returns an alert to send, or null.
@@ -105,6 +132,7 @@ export class SafetyWatcher {
 
     this.lastSeenAt = nowMs;
     this.absenceAlerted = false;
+    this.vanishAlerted = false;
 
     this.samples.push({ t: nowMs, ...posture });
     // Keep a rolling window a little longer than the longest thing we look for.
@@ -205,10 +233,23 @@ export class SafetyWatcher {
   /**
    * Nobody in the picture.
    *
-   * Deliberately mild. A person leaving the frame is usually a person leaving
-   * the room, and treating every absence as an emergency would make the urgent
-   * alerts worthless. It is still worth telling the practitioner that a session
-   * stopped with nobody there.
+   * Two different things look like this, and the difference is everything.
+   *
+   * Someone who walks away from their session is not an emergency, and that is
+   * the mild signal at the bottom of this method. But a camera on a desk cannot
+   * see the floor: when a person actually falls in front of a laptop they leave
+   * the bottom of the frame on the way down, and the fall test above — low head,
+   * horizontal torso, still for four seconds — needs a view of them on the
+   * ground that this camera will never have. Every real fall in front of a
+   * laptop ended up in here, and was reported as "nobody has been in the
+   * picture for a while", at the mildest severity the watcher has, 25 seconds
+   * late.
+   *
+   * So the same corroboration the in-frame fall requires is applied to the
+   * disappearance instead, three independent observations rather than one: they
+   * went down fast, they were already low in the picture when last seen, and
+   * they have not come back. Walking out of shot fails the first two — nobody
+   * leaves a room by accelerating downwards — so it is still only a mention.
    */
   private handleAbsence(nowMs: number): SafetyAlert | null {
     if (this.lastSeenAt === null) {
@@ -216,6 +257,33 @@ export class SafetyWatcher {
       return null;
     }
     const goneForMs = nowMs - this.lastSeenAt;
+
+    if (!this.vanishAlerted && goneForMs >= VANISH_PERSIST_MS) {
+      const descent = this.fastDescentBefore(this.lastSeenAt);
+      const last = this.samples[this.samples.length - 1];
+
+      if (descent !== null && last !== undefined && last.headY >= VANISHED_HEAD_Y) {
+        this.vanishAlerted = true;
+        // Also stops the quiet absence note firing 17 seconds later about the
+        // same disappearance.
+        this.absenceAlerted = true;
+        return {
+          kind: "fall_out_of_view",
+          severity: "urgent",
+          message:
+            "The camera saw a sudden drop, and then lost sight of them below the picture. " +
+            "They have not come back. Please check on them.",
+          evidence: {
+            head_drop_fraction: Math.round(descent.drop * 100) / 100,
+            drop_over_ms: descent.overMs,
+            head_y_when_last_seen: Math.round(last.headY * 100) / 100,
+            torso_tilt_deg_when_last_seen: Math.round(last.tiltDeg),
+            out_of_view_for_ms: Math.round(goneForMs),
+          },
+        };
+      }
+    }
+
     if (goneForMs < ABSENCE_MS || this.absenceAlerted) return null;
 
     this.absenceAlerted = true;
