@@ -90,9 +90,10 @@
    other place this screen used to run past the bottom of the viewport. */
 .panelFull { max-width: none; }
 
-/* The primary panel on the session screen, and the only card here that is its
-   own surface: radius-lg and shadow-resting. Everything inside it is a control
-   at radius-md, and casts nothing. */
+/* A panel on the session screen: its own surface, at radius-lg with
+   shadow-resting. On a motor exercise it is the right-hand column, drawn on
+   the same terms as the camera card beside it. Everything inside it is a
+   control at radius-md, and casts nothing. */
 .panel {
   display: flex;
   flex-direction: column;
@@ -137,7 +138,14 @@
 
 /* ---- The camera ---- */
 
-/* Bounded by the height available as well as the width. Left to fill its
+/* The left column is a card on the same terms as the panel beside it and as
+   the My Plan panels: surface-raised, radius-lg, shadow-resting. The one
+   difference is that it has no padding. The picture is the card's content, so
+   it fills the surface edge to edge and the card's own radius clips its
+   corners — a rounded video floating inside a rounded padded card is the
+   double-rounded look this avoids.
+
+   Bounded by the height available as well as the width. Left to fill its
    column the camera is 4:3 of whatever that column is, which on a short laptop
    pushes the controls under it off the bottom — so the width is capped at
    whatever keeps the picture inside 46% of the viewport's height. */
@@ -146,8 +154,9 @@
   width: min(100%, calc(46dvh * 4 / 3));
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: var(--radius-md);
-  background: var(--border-divider);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-resting);
 }
 
 /* Mirrored so moving the right arm moves the arm on the right of the screen.
@@ -156,6 +165,9 @@
 
 .video, .overlay { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
+/* Before there is a picture, the card shows its own surface rather than a
+   grey plate, so a camera that is still starting reads as an empty panel and
+   not as a broken one. Padding here only, since the card itself has none. */
 .cameraState {
   position: absolute;
   inset: 0;
@@ -167,7 +179,7 @@
   padding: var(--space-6);
   text-align: center;
   color: var(--ink-900);
-  background: var(--border-divider);
+  background: var(--surface-raised);
 }
 
 .cameraState p { margin: 0; }
