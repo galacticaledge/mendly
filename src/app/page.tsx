@@ -15,10 +15,8 @@ import styles from "./page.module.css";
  * Four questions, in order, and then it stops: what should I do today, how is
  * my week going, what have I already done, what is next.
  *
- * The greeting sits on its own, outside every callout. Below it the session
- * callout — the one raised panel here — spans the page; then the week, in a
- * deep-teal callout, sits beside today's exercises. Below 900px everything
- * stacks.
+ * The greeting and session card form the left column. Weekly progress and the
+ * ordered exercise list form the right column. On narrow screens they stack.
  *
  * The aphasia-friendly profile asks the same questions in fewer words: numbers
  * instead of clauses. The motor and visual-friendly profile changes size and
@@ -37,6 +35,7 @@ export default async function Dashboard() {
   const isDone = (id: string) => today?.completedExerciseIds.includes(id) ?? false;
   const done = today?.plan.filter((item) => isDone(item.exercise.id)) ?? [];
   const remaining = today?.plan.filter((item) => !isDone(item.exercise.id)) ?? [];
+  const nextExerciseId = remaining[0]?.exercise.id;
   const aphasia = data.uiProfile === "aphasia";
 
   /**
@@ -170,6 +169,16 @@ export default async function Dashboard() {
             max={7}
             valueText={`${data.sessionsThisWeek} of 7 done`}
           />
+          <ol className={styles.weekDays} aria-label="Sessions by day in the last seven days">
+            {data.week.map((day, index) => (
+              <li key={index} className={day.isToday ? styles.currentDay : undefined}>
+                <span className="body-sm">{day.label.slice(0, 3)}</span>
+                <span className={`${styles.dayStatus} ${day.done ? styles.dayDone : ""} label-sm`} aria-label={`${day.label}: ${day.done ? "session done" : day.isToday ? "today, no session completed yet" : "no session completed"}`}>
+                  {day.done ? "✓" : day.isToday ? "Today" : "·"}
+                </span>
+              </li>
+            ))}
+          </ol>
         </section>
 
         {/* 3 and 4. What I have done and what is next, as one ordered list */}
@@ -187,11 +196,18 @@ export default async function Dashboard() {
                     title={item.exercise.name}
                     status={`${describe(item.exercise.id, item.level, aphasia)} · ${complete ? "Done" : "To do"}`}
                     done={complete}
+                    nextUp={!complete && item.exercise.id === nextExerciseId}
                   />
                 );
               })}
             </ol>
           </section>
+        )}
+        {today?.notes?.trim() && (
+          <aside className={styles.reminder} aria-label="Care team note">
+            <h2 className="label">Care team note</h2>
+            <p className="body">{today.notes}</p>
+          </aside>
         )}
       </div>
     </main>
