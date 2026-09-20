@@ -7,7 +7,8 @@
  * separate pieces:
  *
  *   ExerciseTracker    measures the joint and counts repetitions
- *   SafetyWatcher      watches posture for a possible fall
+ *   SafetyWatcher      watches posture for a possible fall, and asks the
+ *                      person aloud if they drop out of view
  *   EnvironmentChecker confirms the camera can see what is needed, once
  *
  * None of them talk to each other. The tracker does not know about falls, and
@@ -178,6 +179,13 @@ export function MotorExercise({
         lastSafetyAtRef.current = timestampMs;
         const alert = watcherRef.current.update(frame, timestampMs);
         if (alert) reportAlert(alert);
+
+        // The watcher asks before it escalates: once someone has been out of
+        // the picture long enough to be worth wondering about, it wants them
+        // asked out loud whether they are there. Spoken rather than shown,
+        // because a person who has gone down is not looking at the screen.
+        const checkIn = watcherRef.current.takeCheckIn();
+        if (checkIn) say(checkIn);
       }
 
       const canvas = canvasRef.current;

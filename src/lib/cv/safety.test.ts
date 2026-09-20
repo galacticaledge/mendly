@@ -231,3 +231,84 @@ test("one disappearance raises one alert, and no absence note after it", () => {
   }
   assert.equal(count, 1);
 });
+
+/* ------------------------------------------------------------------ */
+/* The spoken check-in                                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Out of view is a question before it is an alert.
+ *
+ * The watcher cannot tell someone who walked away from someone who went down,
+ * so it asks. These tests pin the part that matters: the question arrives
+ * before the urgent alert does, and coming back cancels it.
+ */
+
+test("asks the person aloud once they have been out of view a few seconds", () => {
+  const watcher = new SafetyWatcher();
+  watcher.update(body(0.4, "upright"), 0);
+
+  // Still in the picture: nothing to ask.
+  assert.equal(watcher.takeCheckIn(), null);
+
+  watcher.update({}, 5000);
+  const line = watcher.takeCheckIn();
+
+  assert.ok(line, "a line should be waiting after 5s out of view");
+  assert.match(line, /still there/i);
+  assert.match(line, /camera/i);
+});
+
+test("asks before the urgent alert, not after it", () => {
+  const watcher = new SafetyWatcher();
+  watcher.update(body(0.4, "upright"), 0);
+
+  // 5s gone: the question is ready and no alert has fired yet.
+  const alertAtQuestionTime = watcher.update({}, 5000);
+  assert.equal(alertAtQuestionTime, null, "must not alert before it has asked");
+  assert.ok(watcher.takeCheckIn(), "the question comes first");
+});
+
+test("reading the check-in clears it, so it is spoken once", () => {
+  const watcher = new SafetyWatcher();
+  watcher.update(body(0.4, "upright"), 0);
+  watcher.update({}, 5000);
+
+  assert.ok(watcher.takeCheckIn());
+  assert.equal(watcher.takeCheckIn(), null, "a second read has nothing left");
+
+  // Still gone, and still not asking again.
+  watcher.update({}, 6000);
+  assert.equal(watcher.takeCheckIn(), null, "one question per disappearance");
+});
+
+test("coming back into view drops an unspoken question", () => {
+  const watcher = new SafetyWatcher();
+  watcher.update(body(0.4, "upright"), 0);
+  watcher.update({}, 5000);
+
+  // Back in shot before anyone read the line: asking them to come into view
+  // when they already have is noise.
+  watcher.update(body(0.4, "upright"), 5200);
+  assert.equal(watcher.takeCheckIn(), null);
+});
+
+test("a second disappearance gets its own question", () => {
+  const watcher = new SafetyWatcher();
+  watcher.update(body(0.4, "upright"), 0);
+
+  watcher.update({}, 5000);
+  assert.ok(watcher.takeCheckIn(), "asked the first time");
+
+  watcher.update(body(0.4, "upright"), 6000);
+  watcher.update({}, 11_000);
+  assert.ok(watcher.takeCheckIn(), "asked again after they left a second time");
+});
+
+test("someone who stays in the picture is never asked", () => {
+  const watcher = new SafetyWatcher();
+  for (let t = 0; t <= 20_000; t += 200) {
+    watcher.update(body(0.4, "upright"), t);
+    assert.equal(watcher.takeCheckIn(), null, `asked at ${t}ms while plainly visible`);
+  }
+});

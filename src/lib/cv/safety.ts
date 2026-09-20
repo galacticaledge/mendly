@@ -48,6 +48,15 @@ const ABSENCE_MS = 25_000;
 const VANISH_PERSIST_MS = 8000;
 /** Head at least this far down the frame when last seen: going down, not away. */
 const VANISHED_HEAD_Y = 0.45;
+/**
+ * Out of the picture this long asks the person, aloud, whether they are there.
+ *
+ * Deliberately shorter than VANISH_PERSIST_MS: the question is asked while the
+ * disappearance is still ambiguous, so someone who simply stepped out of shot
+ * can answer it by walking back, and the urgent alert never fires. Someone who
+ * cannot walk back does not answer, and the alert follows four seconds later.
+ */
+const CHECK_IN_MS = 4000;
 
 type Sample = {
   t: number;
@@ -116,6 +125,10 @@ export class SafetyWatcher {
   private episodeAlerted = false;
   private absenceAlerted = false;
   private vanishAlerted = false;
+  /** A line waiting to be spoken to the patient, picked up by takeCheckIn. */
+  private pendingCheckIn: string | null = null;
+  /** One question per disappearance, not one every frame they are gone. */
+  private checkInAsked = false;
 
   /**
    * Feed a frame. Returns an alert to send, or null.
@@ -133,6 +146,11 @@ export class SafetyWatcher {
     this.lastSeenAt = nowMs;
     this.absenceAlerted = false;
     this.vanishAlerted = false;
+    // They are back in the picture, so the next disappearance is a new one and
+    // gets its own question. A check-in already queued is dropped rather than
+    // spoken: asking someone to come back into view once they have is noise.
+    this.checkInAsked = false;
+    this.pendingCheckIn = null;
 
     this.samples.push({ t: nowMs, ...posture });
     // Keep a rolling window a little longer than the longest thing we look for.
@@ -197,6 +215,21 @@ export class SafetyWatcher {
   }
 
   /**
+   * A line to say to the patient, or null. Reading it clears it.
+   *
+   * Kept apart from the alert `update` returns because the two go to different
+   * people for different reasons: the alert tells a practitioner something may
+   * have happened, while this asks the patient a question whose answer decides
+   * whether that alert is needed at all. Callers that have no way to speak can
+   * ignore it and the watcher behaves exactly as it did before.
+   */
+  takeCheckIn(): string | null {
+    const line = this.pendingCheckIn;
+    this.pendingCheckIn = null;
+    return line;
+  }
+
+  /**
    * Was there a fast downward movement just before this moment?
    *
    * Looks back through the window for the highest the head was, and reports
@@ -257,6 +290,16 @@ export class SafetyWatcher {
       return null;
     }
     const goneForMs = nowMs - this.lastSeenAt;
+
+    // Ask before escalating. The watcher cannot tell "walked off to answer the
+    // door" from "went down and cannot get up", and the person is the only one
+    // who can settle it — so put the question to them while there is still time
+    // for the answer to prevent an alert rather than explain one.
+    if (!this.checkInAsked && goneForMs >= CHECK_IN_MS) {
+      this.checkInAsked = true;
+      this.pendingCheckIn =
+        "Are you still there? Please come back in front of the camera so I can see you.";
+    }
 
     if (!this.vanishAlerted && goneForMs >= VANISH_PERSIST_MS) {
       const descent = this.fastDescentBefore(this.lastSeenAt);
