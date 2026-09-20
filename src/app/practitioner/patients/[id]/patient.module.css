@@ -1,3 +1,8 @@
+/* Surfaces here are surface-white behind a border-divider hairline, the card
+   treatment the patient pages took on in the visual refresh. They used to be
+   --canvas, which was the page background at the time; the page is --cream-bg
+   now and --canvas is darker than it, so those rows had become grey slabs. */
+
 .main {
   max-width: 1080px;
   margin: 0 auto;
@@ -8,7 +13,7 @@
 }
 
 .head { display: flex; flex-direction: column; gap: var(--space-2); }
-.head h1 { margin: 0; }
+.head h1 { margin: 0; color: var(--teal-700); }
 .muted { color: var(--ink-600); margin: 0; }
 .history { color: var(--ink-900); margin: var(--space-2) 0 0; max-width: 720px; }
 
@@ -64,7 +69,8 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding: var(--space-5);
-  background: var(--canvas);
+  background: var(--surface-white);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
 }
 
@@ -111,8 +117,8 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
-  background: var(--canvas);
-  border: 2px solid transparent;
+  background: var(--surface-white);
+  border: 2px solid var(--border-divider);
   border-radius: var(--radius-md);
 }
 
@@ -130,7 +136,7 @@
   padding: var(--space-3) var(--space-4);
   border: 2px solid var(--border-control);
   border-radius: var(--radius-md);
-  background: var(--canvas);
+  background: var(--surface-white);
   color: var(--ink-900);
   cursor: pointer;
 }
@@ -150,7 +156,8 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  background: var(--canvas);
+  background: var(--surface-white);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
 }
 
@@ -172,7 +179,7 @@
   flex: 1;
   min-width: 16rem;
   padding: var(--space-3) var(--space-4);
-  background: var(--canvas);
+  background: var(--surface-white);
   color: var(--ink-900);
   border: 2px solid var(--border-control);
   border-radius: var(--radius-sm);
@@ -206,7 +213,8 @@
   justify-content: space-between;
   gap: var(--space-4);
   padding: var(--space-4) var(--space-5);
-  background: var(--surface-raised);
+  background: var(--surface-white);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
 }
 

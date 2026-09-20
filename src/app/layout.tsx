@@ -57,7 +57,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   const app = user ? (
     <>
-      <AppNav role={user.role} icons={patient?.ui_profile === "aphasia"} />
+      <AppNav
+        role={user.role}
+        // The practitioner's nav carries icons as well: it has three
+        // destinations to the patient app's four, and the words alone left the
+        // bar looking unfinished beside it.
+        icons={user.role === "practitioner" || patient?.ui_profile === "aphasia"}
+      />
       {children}
     </>
   ) : (

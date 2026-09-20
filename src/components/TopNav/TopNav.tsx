@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ClipboardList, History, House, Users } from "lucide-react";
+import { Bell, ClipboardCheck, ClipboardList, History, House, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Wordmark } from "../Wordmark/Wordmark";
 import { ActiveUnderline } from "./ActiveUnderline";
@@ -11,19 +11,32 @@ export type NavItem = {
   href: string;
 };
 
-/** A picture for each patient destination, shown beside its word when `icons` is on. */
+/**
+ * A picture for each destination, shown beside its word when `icons` is on.
+ *
+ * Both navigations are covered. A missing entry is not an error — the label
+ * still stands on its own — but a half-iconned row reads as a mistake, so the
+ * rule is that a nav list is either wholly in here or wholly absent from it.
+ */
 const ICONS: Record<string, LucideIcon> = {
   "/": House,
   "/plan": ClipboardList,
   "/history": History,
   "/care-team": Users,
+  "/practitioner": Users,
+  "/practitioner/review": ClipboardCheck,
+  "/practitioner/alerts": Bell,
 };
 
 type TopNavProps = {
   /** At most five items. */
   items: NavItem[];
   activeHref: string;
-  /** Draws an icon beside each label. Used by the aphasia-friendly profile. */
+  /**
+   * Draws an icon beside each label. On for the aphasia-friendly profile, and
+   * for the practitioner, whose three destinations otherwise read as a thin
+   * row of words against the patient app's four.
+   */
   icons?: boolean;
 };
 
