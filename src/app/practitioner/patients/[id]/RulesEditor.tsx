@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Exercise, ExerciseTag, Level, PractitionerRules } from "@/lib/contracts";
 import { Button } from "@/components/Button/Button";
+import { Working } from "@/components/Working/Working";
 import { Choice } from "@/components/Choice/Choice";
 import { Select } from "@/components/Select/Select";
 import styles from "./patient.module.css";
@@ -280,6 +281,8 @@ export function RulesEditor({ patientId, rules: initial, catalog, tagLabels }: R
         </Button>
         {saved && <span className={`${styles.muted} body`}>Saved.</span>}
       </div>
+
+      {busy && <Working steps={["Saving your rules for this patient"]} step={0} />}
     </section>
   );
 }

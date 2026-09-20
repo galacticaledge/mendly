@@ -1,0 +1,31 @@
+/* A line of text beside or under the control that started the work. It is not
+   a panel, a tint or a box: the sentence is the whole component. */
+.working {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0;
+  color: var(--ink-700);
+}
+
+/* Which step, kept quieter than the step itself. */
+.step {
+  color: var(--ink-600);
+}
+
+/* The count of seconds, right after the sentence rather than pushed to the far
+   side of a 1080px column, where it stopped reading as part of the same line.
+   Tabular so nothing shuffles as it passes ten. */
+.elapsed {
+  flex: none;
+  color: var(--ink-600);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Motor and visual-friendly profile: nothing essential is muted. See
+   profiles.css, which re-points ink-600 and ink-700 to ink-900 already; this
+   only stops the step and the count being told apart by weight alone. */
+:global([data-profile="motor_visual"]) .step,
+:global([data-profile="motor_visual"]) .elapsed {
+  color: var(--ink-900);
+}

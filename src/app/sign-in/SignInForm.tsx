@@ -4,6 +4,7 @@ import { useState } from "react";
 import { OctagonAlert } from "lucide-react";
 import { Button } from "@/components/Button/Button";
 import { Input } from "@/components/Input/Input";
+import { Working } from "@/components/Working/Working";
 import styles from "./signIn.module.css";
 
 export function SignInForm() {
@@ -28,14 +29,18 @@ export function SignInForm() {
 
       if (!response.ok) {
         setError(body.error ?? "That did not work. Please try again.");
+        setBusy(false);
         return;
       }
       // A full navigation, not router.push: every page behind this reads the
       // session cookie on the server, and they need a fresh request to see it.
+      //
+      // `busy` is deliberately left on. The navigation outlives this function,
+      // and clearing it here put the form back to "Sign in", enabled, for the
+      // whole of a load the person is still waiting on.
       window.location.href = body.redirect;
     } catch {
       setError("Mendly could not be reached. Check your connection and try again.");
-    } finally {
       setBusy(false);
     }
   }
@@ -68,6 +73,11 @@ export function SignInForm() {
         value={password}
         onChange={(event) => setPassword(event.target.value)}
       />
+
+      {/* The button reads "Signing in" for the request, but the success path is
+          a whole page load after it, and that is the part with nothing on
+          screen to explain itself. */}
+      {busy && <Working steps={["Checking your details, then opening your account"]} step={0} />}
 
       <div className={styles.actions}>
         <Button variant="primary" type="submit" disabled={busy}>

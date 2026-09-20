@@ -16,6 +16,7 @@ import type { GuardrailViolation, Level, ProposedExercise } from "@/lib/contract
 import { Button } from "@/components/Button/Button";
 import { Select } from "@/components/Select/Select";
 import { StatusTag } from "@/components/StatusTag/StatusTag";
+import { Working } from "@/components/Working/Working";
 import styles from "./patient.module.css";
 
 export type ProposalReviewProps = {
@@ -39,13 +40,13 @@ export function ProposalReview({
   );
   const [dropped, setDropped] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"approve" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const kept = exercises.filter((item) => !dropped.includes(item.exerciseId));
 
   async function decide(decision: "approve" | "reject") {
-    setBusy(true);
+    setBusy(decision);
     setError(null);
     try {
       const response = await fetch(`/api/practitioner/sets/${setId}/review`, {
@@ -77,7 +78,7 @@ export function ProposalReview({
     } catch {
       setError("Mendly could not be reached.");
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -180,15 +181,29 @@ export function ProposalReview({
         <Button
           variant="featured"
           icon={Check}
-          disabled={busy || kept.length === 0}
+          disabled={busy !== null || kept.length === 0}
           onClick={() => decide("approve")}
         >
           {kept.length === 0 ? "Nothing left to approve" : `Approve ${kept.length}`}
         </Button>
-        <Button icon={X} disabled={busy} onClick={() => decide("reject")}>
+        <Button icon={X} disabled={busy !== null} onClick={() => decide("reject")}>
           Reject this set
         </Button>
       </div>
+
+      {/* Approving used to disable both buttons and change nothing else, which
+          on a slow connection reads as a click that did not register — on the
+          one action here that reaches a patient. */}
+      {busy && (
+        <Working
+          steps={[
+            busy === "approve"
+              ? "Approving the set, and sending it to them"
+              : "Recording that you rejected this set",
+          ]}
+          step={0}
+        />
+      )}
     </section>
   );
 }

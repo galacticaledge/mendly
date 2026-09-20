@@ -81,6 +81,11 @@
 
 .decisions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
 
+/* The draft button with its progress under it, rather than beside it: the line
+   is a sentence, and a sentence next to a button pushes the button around as
+   the step changes. */
+.drafting { display: flex; flex-direction: column; gap: var(--space-3); }
+
 /* ---- Rules ---- */
 
 .rules {
